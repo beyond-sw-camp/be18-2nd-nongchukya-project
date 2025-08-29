@@ -4,3 +4,5 @@
 [테이블 명세서](https://docs.google.com/spreadsheets/d/1293Cmz0EkIeH163VswqcNQPK-0b8Cr8gXvtHyckqLN8/edit?gid=99972625#gid=99972625)
 
 [ERD](https://www.erdcloud.com/d/mrc7T5gfD8iZbYr8P)
+
+[API 명세서](https://www.notion.so/API-24f80955955380be8f0deade40d16847)
