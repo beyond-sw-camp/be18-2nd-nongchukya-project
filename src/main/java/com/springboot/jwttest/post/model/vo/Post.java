@@ -17,7 +17,7 @@ public class Post {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    // 제목
+    // 제목2
     private String title;
     // 내용2
     private String content;
