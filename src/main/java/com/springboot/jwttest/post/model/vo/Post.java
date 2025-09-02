@@ -19,7 +19,7 @@ public class Post {
 
     // 제목
     private String title;
-    // 내용
+    // 내용2
     private String content;
 
     @Column(name = "created_at")
