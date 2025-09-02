@@ -8,6 +8,7 @@ public class PostRequestDto {
     //xptmxm 2
     //3
     //4
+    //5
     private String title;
     private String content;
 }
