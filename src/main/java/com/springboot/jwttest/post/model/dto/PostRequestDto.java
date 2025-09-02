@@ -6,6 +6,7 @@ import lombok.Getter;
 public class PostRequestDto {
     // 테스트용 주석
     //xptmxm 2
+    //3
     private String title;
     private String content;
 }
