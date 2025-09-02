@@ -7,6 +7,7 @@ public class PostRequestDto {
     // 테스트용 주석
     //xptmxm 2
     //3
+    //4
     private String title;
     private String content;
 }
