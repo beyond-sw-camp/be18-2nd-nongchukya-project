@@ -1,20 +1,20 @@
 package com.beyond.match.user.model.vo;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import lombok.Data;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.LocalDate;
-
-@Data
 @Entity
+@Data
 public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
-    private Integer userId;        // PK
+    private int userId;        // PK
 
     @Column(name="id", nullable=false, length=255)
     private String id;        // 로그인 ID
@@ -31,7 +31,7 @@ public class User {
     private String name;
     private String nickname;
     private String gender;
-    private Integer age;
+    private int age;
     private String address;
 
     @Column(name="phone_number")

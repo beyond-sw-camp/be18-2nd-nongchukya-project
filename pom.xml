@@ -9,7 +9,7 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.springboot</groupId>
-    <artifactId>jwttest</artifactId>
+    <artifactId>match</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>jwttest</name>
     <description>jwttest</description>
