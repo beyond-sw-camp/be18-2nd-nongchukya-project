@@ -1,7 +1,7 @@
 package com.beyond.match.jwt.security;
 
 
-import com.beyond.match.jwt.auth.model.UserDetailsImpl;
+import com.beyond.match.jwt.auth.model.security.UserDetailsImpl;
 import com.beyond.match.user.model.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

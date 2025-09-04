@@ -18,13 +18,13 @@ package com.beyond.match.community.post.controller;
     DELETE api/v1/community/posts/{postId}
  */
 
-import com.beyond.match.auth.model.security.UserDetailsImpl;
 import com.beyond.match.common.model.dto.BaseResponseDto;
 import com.beyond.match.common.model.dto.ItemsResponseDto;
 import com.beyond.match.community.post.model.dto.PostRequestDto;
 import com.beyond.match.community.post.model.service.PostService;
 import com.beyond.match.community.post.model.vo.Category;
 import com.beyond.match.community.post.model.vo.Post;
+import com.beyond.match.jwt.auth.model.security.UserDetailsImpl;
 import com.beyond.match.user.model.vo.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

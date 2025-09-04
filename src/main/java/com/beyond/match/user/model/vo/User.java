@@ -7,10 +7,9 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import lombok.Data;
 
-@Entity
 @Data
+@Entity
 public class User {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
@@ -31,7 +30,7 @@ public class User {
     private String name;
     private String nickname;
     private String gender;
-    private int age;
+    private Integer age;
     private String address;
 
     @Column(name="phone_number")
