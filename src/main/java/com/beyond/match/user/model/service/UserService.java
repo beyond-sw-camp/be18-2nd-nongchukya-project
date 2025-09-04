@@ -1,6 +1,6 @@
 package com.beyond.match.user.model.service;
 
-import com.beyond.match.jwt.auth.dto.ListResDto;
+import com.beyond.match.jwt.auth.model.dto.ListResDto;
 import com.beyond.match.user.model.repository.UserRepository;
 import com.beyond.match.user.model.vo.User;
 import lombok.RequiredArgsConstructor;

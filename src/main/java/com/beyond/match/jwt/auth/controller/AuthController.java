@@ -1,8 +1,8 @@
 package com.beyond.match.jwt.auth.controller;
 
-import com.beyond.match.jwt.auth.dto.LoginRequestDto;
-import com.beyond.match.jwt.auth.dto.SignUpRequestDto;
-import com.beyond.match.jwt.auth.dto.TokenResponseDto;
+import com.beyond.match.jwt.auth.model.dto.LoginRequestDto;
+import com.beyond.match.jwt.auth.model.dto.SignUpRequestDto;
+import com.beyond.match.jwt.auth.model.dto.TokenResponseDto;
 import com.beyond.match.user.model.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

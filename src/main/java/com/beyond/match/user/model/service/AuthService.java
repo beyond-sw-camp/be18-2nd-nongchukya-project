@@ -1,9 +1,9 @@
 package com.beyond.match.user.model.service;
 
 
-import com.beyond.match.jwt.auth.dto.LoginRequestDto;
-import com.beyond.match.jwt.auth.dto.SignUpRequestDto;
-import com.beyond.match.jwt.auth.dto.TokenResponseDto;
+import com.beyond.match.jwt.auth.model.dto.LoginRequestDto;
+import com.beyond.match.jwt.auth.model.dto.SignUpRequestDto;
+import com.beyond.match.jwt.auth.model.dto.TokenResponseDto;
 import com.beyond.match.jwt.security.JwtTokenProvider;
 import com.beyond.match.jwt.security.TokenHashUtil;
 import com.beyond.match.jwt.token.repository.RefreshTokenRepository;
