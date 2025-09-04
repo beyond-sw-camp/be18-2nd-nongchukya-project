@@ -1,6 +1,7 @@
 package com.beyond.match.jwt.security;
 
 
+import com.beyond.match.jwt.auth.model.UserDetailsImpl;
 import com.beyond.match.user.model.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -13,7 +14,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -39,10 +39,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 Integer uid = jwt.userId(token);
 
                 userRepository.findById(uid).ifPresent(u -> {
+                    UserDetailsImpl userDetails = new UserDetailsImpl(u);
                     var authentication = new UsernamePasswordAuthenticationToken(
-                            u.getUserId(), // principal
+                            userDetails, // principal
                             null,          // credentials (보통 null 처리)
-                            List.of()      // 권한 (ROLE_USER 등 넣을 수 있음)
+                            userDetails.getAuthorities()      // 권한 (ROLE_USER 등 넣을 수 있음)
                     );
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                 });
