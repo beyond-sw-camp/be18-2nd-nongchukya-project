@@ -26,7 +26,7 @@ public class JwtTokenProvider {
     @Value("${jwt.refresh-exp-day}")
     private long refreshExpDay;
 
-    private javax.crypto.SecretKey key;
+    private SecretKey key;
 
     @PostConstruct
     void init() {
