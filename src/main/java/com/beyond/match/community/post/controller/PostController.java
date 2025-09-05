@@ -1,6 +1,4 @@
 package com.beyond.match.community.post.controller;
-
-// Post Controller
 /*
     - 게시글 작성
     POST api/v1/community/posts
@@ -21,6 +19,8 @@ package com.beyond.match.community.post.controller;
 import com.beyond.match.common.model.dto.BaseResponseDto;
 import com.beyond.match.common.model.dto.ItemsResponseDto;
 import com.beyond.match.community.post.model.dto.PostRequestDto;
+import com.beyond.match.community.post.model.dto.PostResponseDto;
+import com.beyond.match.community.post.model.dto.PostsResponseDto;
 import com.beyond.match.community.post.model.service.PostService;
 import com.beyond.match.community.post.model.vo.Category;
 import com.beyond.match.community.post.model.vo.Post;
@@ -30,6 +30,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -50,9 +51,9 @@ public class PostController {
     private final PostService postService;
 
     @GetMapping("/posts")
-    public ResponseEntity<ItemsResponseDto<Post>> getPosts(@RequestParam int page, @RequestParam int numOfRows) {
+    public ResponseEntity<ItemsResponseDto<PostsResponseDto>> getPosts(@RequestParam int page, @RequestParam int numOfRows) {
         int totalCount = postService.getTotalCount();
-        List<Post> posts = postService.getPosts(page, numOfRows);
+        List<PostsResponseDto> posts = postService.getPosts(page, numOfRows);
 
         if(!posts.isEmpty()){
             return ResponseEntity.ok(
@@ -64,11 +65,20 @@ public class PostController {
     }
 
     @GetMapping("/posts/{postId}")
-    public ResponseEntity<BaseResponseDto<Post>> getPost(@PathVariable int postId) {
-        Post post = postService.getPostById(postId)
-                .orElseThrow(() -> new RuntimeException("게시글이 없습니다."));
+    public ResponseEntity<BaseResponseDto<PostResponseDto>> getPost(@PathVariable int postId) {
+        Post post = postService.getPostByIdAndIncrementViewCount(postId);
 
-        return ResponseEntity.ok(new BaseResponseDto<>(HttpStatus.OK, post));
+        PostResponseDto postResponseDto = new PostResponseDto(
+                post.getTitle(),
+                post.getUser().getProfileImage(),
+                post.getUser().getNickname(),
+                post.getUpdatedAt(),
+                post.getUpdatedAt().isAfter(post.getCreatedAt()), // 수정 여부 계산
+                post.getViewCount(),
+                post.getContent()
+        );
+
+        return ResponseEntity.ok(new BaseResponseDto<>(HttpStatus.OK, postResponseDto));
     }
 
     @PostMapping("/posts")
@@ -97,34 +107,20 @@ public class PostController {
     }
 
     @PutMapping("/posts/{postId}")
-    public ResponseEntity<BaseResponseDto<Post>> updatePost(
+    @Transactional
+    public ResponseEntity<BaseResponseDto<PostResponseDto>> updatePost(
             @RequestBody PostRequestDto postRequestDto,
             @AuthenticationPrincipal UserDetailsImpl userDetails,
             @PathVariable int postId) {
         User user = userDetails.getUser();
 
-        Post post = postService.getPostById(postId)
-                .orElseThrow(() -> new RuntimeException("게시글이 없습니다."));
+        PostResponseDto updatedPostResponseDto = postService.updatePost(postRequestDto, user, postId);
 
-        // PK가 아닌 Id를 사용한 권한 확인 (문제 생기면 PK로 수정해야)
-        if(!post.getUser().getId().equals(user.getId())){
-            throw new RuntimeException("작성자만 수정할 수 있습니다.");
-        }
-
-        Category category = postService.findCategoryById(postRequestDto.getCategoryId())
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 카테고리입니다."));
-
-        post.setTitle(postRequestDto.getTitle());
-        post.setContent(postRequestDto.getContent());
-        post.setCategory(category);
-
-        Post updatedPost = postService.save(post);
-
-        return ResponseEntity.ok(new BaseResponseDto<>(HttpStatus.OK, updatedPost));
+        return ResponseEntity.ok(new BaseResponseDto<>(HttpStatus.OK, updatedPostResponseDto));
     }
 
     @DeleteMapping("/posts/{postId}")
-    public ResponseEntity<BaseResponseDto<Post>> deletePost(
+    public ResponseEntity<BaseResponseDto<String>> deletePost(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
             @PathVariable int postId){
         User user = userDetails.getUser();
@@ -138,6 +134,6 @@ public class PostController {
 
         postService.deletePost(postId);
 
-        return ResponseEntity.ok(new BaseResponseDto<>(HttpStatus.OK, post));
+        return ResponseEntity.ok(new BaseResponseDto<>(HttpStatus.OK, "게시글이 삭제되었습니다."));
     }
 }

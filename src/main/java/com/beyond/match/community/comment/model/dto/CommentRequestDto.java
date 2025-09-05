@@ -1,4 +1,4 @@
-package com.beyond.match.community.post.model.dto;
+package com.beyond.match.community.comment.model.dto;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -7,10 +7,8 @@ import lombok.ToString;
 @Getter
 @ToString
 @RequiredArgsConstructor
-public class PostRequestDto {
-    private final String title;
-
+public class CommentRequestDto {
     private final String content;
 
-    private final int categoryId;
+    private final int parentCommentId;
 }
