@@ -1,9 +1,9 @@
 package com.beyond.match.user.model.service;
 
 
-import com.beyond.match.jwt.auth.dto.LoginRequestDto;
-import com.beyond.match.jwt.auth.dto.SignUpRequestDto;
-import com.beyond.match.jwt.auth.dto.TokenResponseDto;
+import com.beyond.match.jwt.auth.model.dto.LoginRequestDto;
+import com.beyond.match.jwt.auth.model.dto.SignUpRequestDto;
+import com.beyond.match.jwt.auth.model.dto.TokenResponseDto;
 import com.beyond.match.jwt.security.JwtTokenProvider;
 import com.beyond.match.jwt.security.TokenHashUtil;
 import com.beyond.match.jwt.token.repository.RefreshTokenRepository;
@@ -19,7 +19,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AuthService {
     private final PasswordEncoder passwordEncoder;
-//    private final UserMapper userMapper;
+    //    private final UserMapper userMapper;
     private final UserRepository userRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final JwtTokenProvider jwt;

@@ -1,8 +1,8 @@
 package com.beyond.match.jwt.auth.controller;
 
-import com.beyond.match.jwt.auth.dto.ListResDto;
-import com.beyond.match.jwt.auth.dto.MeResonseDto;
-import com.beyond.match.jwt.auth.model.UserDetailsImpl;
+import com.beyond.match.jwt.auth.model.dto.ListResDto;
+import com.beyond.match.jwt.auth.model.dto.MeResonseDto;
+import com.beyond.match.jwt.auth.model.security.UserDetailsImpl;
 import com.beyond.match.user.model.repository.UserRepository;
 import com.beyond.match.user.model.service.UserService;
 import com.beyond.match.user.model.vo.User;

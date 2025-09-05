@@ -1,4 +1,4 @@
-package com.beyond.match.jwt.auth.dto;
+package com.beyond.match.jwt.auth.model.dto;
 
 import com.beyond.match.user.model.vo.User;
 

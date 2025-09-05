@@ -1,7 +1,7 @@
 package com.beyond.match.jwt.security;
 
 
-import com.beyond.match.jwt.auth.model.UserDetailsImpl;
+import com.beyond.match.jwt.auth.model.security.UserDetailsImpl;
 import com.beyond.match.user.model.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -20,7 +20,7 @@ import java.io.IOException;
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwt;
-//    private final UserMapper userMapper;
+    //    private final UserMapper userMapper;
     private final UserRepository userRepository;
     // 인증,인가
     @Override

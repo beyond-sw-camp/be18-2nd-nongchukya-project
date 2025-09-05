@@ -1,4 +1,4 @@
-package com.beyond.match.jwt.auth.model;
+package com.beyond.match.jwt.auth.model.security;
 
 import com.beyond.match.user.model.vo.User;
 import lombok.RequiredArgsConstructor;

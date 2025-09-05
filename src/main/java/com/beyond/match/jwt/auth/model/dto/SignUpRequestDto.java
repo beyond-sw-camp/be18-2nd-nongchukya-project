@@ -1,4 +1,4 @@
-package com.beyond.match.jwt.auth.dto;
+package com.beyond.match.jwt.auth.model.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

@@ -11,22 +11,6 @@ import lombok.Data;
 @Entity
 public class User {
 
-    // feature 테스트
-    // 테스트 2
-    // 3`
-    // 4
-    // 5
-    // 6
-    // 7
-    // 8
-    // 9
-    // 10
-    // 11
-    // 12
-    // pr 테스트
-    // 이슈와 pr 테스트4
-    // test
-    // 삭제하는 기능 추가
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")

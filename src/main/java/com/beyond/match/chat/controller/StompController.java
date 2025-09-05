@@ -34,5 +34,3 @@ public class StompController {
         messageTemplate.convertAndSend("/sub/chat/"+chatRoomId, message);
     }
 }
-
-
