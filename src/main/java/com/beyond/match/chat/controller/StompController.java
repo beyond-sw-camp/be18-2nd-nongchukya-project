@@ -1,6 +1,7 @@
 package com.beyond.match.chat.controller;
 
 import com.beyond.match.chat.model.dto.ChatDto;
+import com.beyond.match.chat.model.service.ChatService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Controller;
 public class StompController {
 
     private final SimpMessageSendingOperations messageTemplate;
+    private final ChatService chatService;
 
 //    @MessageMapping("/chat/{chatRoomId}") // 클라이언트에서 특정 형태로 메시지를 발행시 메세지매핑 수신
 //    @SendTo("/sub/chat/{chatRoomId}") // 해당 룸번호에 메시지를 발행하여 구독중인 클라이언트에게 메시지 전송
@@ -28,9 +30,12 @@ public class StompController {
 //    }
 
     @MessageMapping("/chat/{chatRoomId}")
-    public void sendMessage(@DestinationVariable Long chatRoomId, ChatDto message){
+    public void sendMessage(@DestinationVariable int chatRoomId, ChatDto message){
 
         System.out.println(message.getMessage());
+        chatService.saveMessage(chatRoomId, message);
         messageTemplate.convertAndSend("/sub/chat/"+chatRoomId, message);
     }
 }
+
+

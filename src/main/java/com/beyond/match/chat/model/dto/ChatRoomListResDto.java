@@ -2,14 +2,14 @@ package com.beyond.match.chat.model.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Getter
-@Builder
-@AllArgsConstructor
+@Data
 @NoArgsConstructor
-public class ChatDto {
-    private String senderNickname;
-    private String message;
+@AllArgsConstructor
+@Builder
+public class ChatRoomListResDto {
+    private Integer roomId;
+    private String roomName;
 }
