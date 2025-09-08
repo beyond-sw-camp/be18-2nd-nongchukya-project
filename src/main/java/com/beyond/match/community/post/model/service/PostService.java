@@ -21,7 +21,7 @@ public interface PostService {
 
     Optional<Post> getPostById(int postId);
 
-    Post getPostByIdAndIncrementViewCount(int postId);
+    PostResponseDto getPost(int postId);
 
     void deletePost(int postId);
 

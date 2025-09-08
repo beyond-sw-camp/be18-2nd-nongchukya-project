@@ -1,5 +1,7 @@
 package com.beyond.match.community.post.model.service;
 
+import com.beyond.match.community.comment.model.dto.CommentResponseDto;
+import com.beyond.match.community.comment.model.service.CommentService;
 import com.beyond.match.community.post.model.dto.PostRequestDto;
 import com.beyond.match.community.post.model.dto.PostResponseDto;
 import com.beyond.match.community.post.model.dto.PostsResponseDto;
@@ -24,6 +26,7 @@ import java.util.Optional;
 public class PostServiceImpl implements PostService {
     private final PostRepository postRepository;
     private final CategoryRepository categoryRepository;
+    private final CommentService commentService;
 
     @Override
     public int getTotalCount() {
@@ -35,14 +38,7 @@ public class PostServiceImpl implements PostService {
     public List<PostsResponseDto> getPosts(int page, int numOfRows) {
         Pageable pageable = PageRequest.of(page - 1, numOfRows, Sort.by("createdAt").descending());
 
-        return postRepository.findAllWithUser(pageable).stream()
-                .map(post -> new PostsResponseDto(
-                        post.getTitle(),
-                        post.getUser().getNickname(),
-                        post.getCreatedAt(),
-                        post.getViewCount()
-                ))
-                .toList();
+        return postRepository.findPostsWithCommentCount(pageable).getContent();
     }
 
     @Override
@@ -53,14 +49,22 @@ public class PostServiceImpl implements PostService {
 
     @Transactional
     @Override
-    public Post getPostByIdAndIncrementViewCount(int postId) {
-        Post post = postRepository.findByIdWithUser(postId)
-                .orElseThrow(() -> new RuntimeException("게시글이 없습니다."));
+    public PostResponseDto getPost(int postId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("Post not found"));
 
-        // 조회수 증가 (별도 UPDATE 쿼리)
-        postRepository.incrementViewCount(postId);
+        List<CommentResponseDto> comments = commentService.getCommentsByPostId(postId);
 
-        return post;
+        return new PostResponseDto(
+                post.getTitle(),
+                post.getUser().getProfileImage(),
+                post.getUser().getNickname(),
+                post.getUpdatedAt(),
+                post.getUpdatedAt().isAfter(post.getCreatedAt()),
+                post.getViewCount(),
+                post.getContent(),
+                comments
+        );
     }
 
     @Override
@@ -69,10 +73,10 @@ public class PostServiceImpl implements PostService {
         return postRepository.save(post);
     }
 
-    @Override
     @Transactional
+    @Override
     public PostResponseDto updatePost(PostRequestDto postRequestDto, User user, int postId) {
-        Post post = postRepository.findByIdWithUser(postId)
+        Post post = postRepository.findByIdWithUserAndComments(postId)
                 .orElseThrow(() -> new RuntimeException("게시글이 없습니다."));
 
         if (!post.getUser().getId().equals(user.getId())) {
@@ -86,6 +90,8 @@ public class PostServiceImpl implements PostService {
         post.setContent(postRequestDto.getContent());
         post.setCategory(category);
 
+        List<CommentResponseDto> comments = commentService.getCommentsByPostId(postId);
+
         postRepository.save(post); // DB 반영
 
         return new PostResponseDto(
@@ -95,7 +101,8 @@ public class PostServiceImpl implements PostService {
                 post.getUpdatedAt(),
                 post.getUpdatedAt().isAfter(post.getCreatedAt()),
                 post.getViewCount(),
-                post.getContent()
+                post.getContent(),
+                comments
         );
     }
 

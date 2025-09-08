@@ -1,10 +1,12 @@
 package com.beyond.match.community.post.model.dto;
 
+import com.beyond.match.community.comment.model.dto.CommentResponseDto;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @ToString
@@ -25,6 +27,6 @@ public class PostResponseDto {
 
     private final String content;
 
-
 //    댓글, 좋아요, 첨부 파일, 태그 추가
+    private final List<CommentResponseDto> comments;
 }

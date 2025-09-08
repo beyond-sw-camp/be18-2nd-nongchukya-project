@@ -18,6 +18,7 @@ package com.beyond.match.community.post.controller;
 
 import com.beyond.match.common.model.dto.BaseResponseDto;
 import com.beyond.match.common.model.dto.ItemsResponseDto;
+import com.beyond.match.community.comment.model.service.CommentService;
 import com.beyond.match.community.post.model.dto.PostRequestDto;
 import com.beyond.match.community.post.model.dto.PostResponseDto;
 import com.beyond.match.community.post.model.dto.PostsResponseDto;
@@ -30,7 +31,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -49,6 +49,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PostController {
     private final PostService postService;
+    private final CommentService commentService;
 
     @GetMapping("/posts")
     public ResponseEntity<ItemsResponseDto<PostsResponseDto>> getPosts(@RequestParam int page, @RequestParam int numOfRows) {
@@ -66,17 +67,7 @@ public class PostController {
 
     @GetMapping("/posts/{postId}")
     public ResponseEntity<BaseResponseDto<PostResponseDto>> getPost(@PathVariable int postId) {
-        Post post = postService.getPostByIdAndIncrementViewCount(postId);
-
-        PostResponseDto postResponseDto = new PostResponseDto(
-                post.getTitle(),
-                post.getUser().getProfileImage(),
-                post.getUser().getNickname(),
-                post.getUpdatedAt(),
-                post.getUpdatedAt().isAfter(post.getCreatedAt()), // 수정 여부 계산
-                post.getViewCount(),
-                post.getContent()
-        );
+        PostResponseDto postResponseDto = postService.getPost(postId);
 
         return ResponseEntity.ok(new BaseResponseDto<>(HttpStatus.OK, postResponseDto));
     }
@@ -107,7 +98,6 @@ public class PostController {
     }
 
     @PutMapping("/posts/{postId}")
-    @Transactional
     public ResponseEntity<BaseResponseDto<PostResponseDto>> updatePost(
             @RequestBody PostRequestDto postRequestDto,
             @AuthenticationPrincipal UserDetailsImpl userDetails,

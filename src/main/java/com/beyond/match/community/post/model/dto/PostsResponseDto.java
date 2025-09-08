@@ -11,12 +11,13 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 // 게시글 전체 조회시 사용하는 Dto
 public class PostsResponseDto {
+    private final int postId;
+
     private final String title;
 
-//    댓글 수
-//    private final int commentCount;
-
     private final String userNickname;
+
+    private final long commentCount;
 
     private final LocalDateTime createdAt;
 

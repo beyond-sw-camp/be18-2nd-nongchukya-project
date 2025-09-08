@@ -1,6 +1,8 @@
 package com.beyond.match.community.post.model.repository;
 
+import com.beyond.match.community.post.model.dto.PostsResponseDto;
 import com.beyond.match.community.post.model.vo.Post;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -13,8 +15,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface PostRepository extends JpaRepository<Post,Integer> {
-    @Query("SELECT p FROM Post p JOIN FETCH p.user ORDER BY p.createdAt DESC")
-    List<Post> findAllWithUser(Pageable pageable);
 
     @Query("SELECT p FROM Post p JOIN FETCH p.user WHERE p.postId = :postId")
     Optional<Post> findByIdWithUser(@Param("postId") int postId);
@@ -23,4 +23,26 @@ public interface PostRepository extends JpaRepository<Post,Integer> {
     @Transactional
     @Query("UPDATE Post p SET p.viewCount = p.viewCount + 1 WHERE p.postId = :postId")
     void incrementViewCount(@Param("postId") int postId);
+
+    @Query("SELECT new com.beyond.match.community.post.model.dto.PostsResponseDto(" +
+            "p.postId, p.title, u.nickname, COUNT(c), p.createdAt, p.viewCount) " +
+            "FROM Post p " +
+            "JOIN p.user u " +
+            "LEFT JOIN p.comments c " +
+            "GROUP BY p.postId, p.title, u.nickname, p.createdAt, p.viewCount")
+    Page<PostsResponseDto> findPostsWithCommentCount(Pageable pageable);
+
+    @Query("SELECT p FROM Post p " +
+            "JOIN FETCH p.user u " +
+            "LEFT JOIN FETCH p.comments c " +
+            "WHERE p.postId = :postId")
+    Optional<Post> findByIdWithUserAndComments(@Param("postId") int postId);
+
+    @Query("SELECT p FROM Post p " +
+            "LEFT JOIN FETCH p.comments c " +  // 최상위 댓글 fetch
+            "LEFT JOIN FETCH c.replies r " +   // 대댓글 fetch
+            "LEFT JOIN FETCH c.user " +
+            "LEFT JOIN FETCH r.user " +
+            "WHERE p.postId = :postId")
+    Optional<Post> findByIdWithComments(@Param("postId") int postId);
 }
