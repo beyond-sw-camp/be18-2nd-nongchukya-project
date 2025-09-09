@@ -10,8 +10,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
-
-import java.util.List;
 import java.util.Optional;
 
 public interface PostRepository extends JpaRepository<Post,Integer> {
@@ -25,12 +23,15 @@ public interface PostRepository extends JpaRepository<Post,Integer> {
     void incrementViewCount(@Param("postId") int postId);
 
     @Query("SELECT new com.beyond.match.community.post.model.dto.PostsResponseDto(" +
-            "p.postId, p.title, u.nickname, COUNT(c), p.createdAt, p.viewCount) " +
+            "p.postId, p.title, u.nickname, COUNT(DISTINCT c), COUNT(DISTINCT l), p.createdAt, p.viewCount) " +
             "FROM Post p " +
             "JOIN p.user u " +
             "LEFT JOIN p.comments c " +
+            "LEFT JOIN p.postLikes l " +
             "GROUP BY p.postId, p.title, u.nickname, p.createdAt, p.viewCount")
-    Page<PostsResponseDto> findPostsWithCommentCount(Pageable pageable);
+    Page<PostsResponseDto> findPostsWithCommentAndLikeCount(Pageable pageable);
+
+
 
     @Query("SELECT p FROM Post p " +
             "JOIN FETCH p.user u " +

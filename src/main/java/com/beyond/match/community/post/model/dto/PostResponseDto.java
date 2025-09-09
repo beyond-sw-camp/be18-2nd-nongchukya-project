@@ -1,6 +1,7 @@
 package com.beyond.match.community.post.model.dto;
 
 import com.beyond.match.community.comment.model.dto.CommentResponseDto;
+import com.beyond.match.community.post.model.vo.Attachment;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
@@ -27,6 +28,11 @@ public class PostResponseDto {
 
     private final String content;
 
-//    댓글, 좋아요, 첨부 파일, 태그 추가
     private final List<CommentResponseDto> comments;
+
+    private final List<AttachmentResponseDto> attachments;
+
+    private final int likeCount;
+
+    private final boolean liked;
 }
