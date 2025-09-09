@@ -55,11 +55,14 @@ public class Post {
     @Column(name = "view_count", nullable = false)
     private int viewCount = 1; // Post 생성 시 default = 1
 
-//   첨부파일 생성
-//   private List<File> files = new ArrayList<>();
-
-//    태그 생성
-//    private Set<Tag> tags = new HashSet<>();
+    @Builder.Default
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Attachment> attachments = new ArrayList<>();
+    
+    // 좋아요 기능
+    @Builder.Default
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PostLike> postLikes = new ArrayList<>();
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @OrderBy("createdAt ASC")

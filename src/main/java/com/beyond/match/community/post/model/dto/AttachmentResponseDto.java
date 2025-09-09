@@ -2,17 +2,15 @@ package com.beyond.match.community.post.model.dto;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import lombok.ToString;
 
 @Getter
-@Setter
 @ToString
 @RequiredArgsConstructor
-public class PostRequestDto {
-    private final String title;
+public class AttachmentResponseDto {
+    private final int attachmentId;
 
-    private final String content;
+    private final String originalName;
 
-    private final int categoryId;
+    private final String fileUrl;
 }

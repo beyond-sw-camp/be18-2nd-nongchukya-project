@@ -5,14 +5,17 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.util.List;
+
 @Getter
-@Setter
 @ToString
 @RequiredArgsConstructor
-public class PostRequestDto {
+public class UpdatePostRequestDto {
     private final String title;
 
     private final String content;
 
     private final int categoryId;
+
+    private final List<Integer> deleteAttachmentIds;
 }

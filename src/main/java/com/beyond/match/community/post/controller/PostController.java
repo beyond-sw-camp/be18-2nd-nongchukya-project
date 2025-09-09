@@ -18,10 +18,11 @@ package com.beyond.match.community.post.controller;
 
 import com.beyond.match.common.model.dto.BaseResponseDto;
 import com.beyond.match.common.model.dto.ItemsResponseDto;
-import com.beyond.match.community.comment.model.service.CommentService;
+import com.beyond.match.community.post.model.dto.AttachmentResponseDto;
 import com.beyond.match.community.post.model.dto.PostRequestDto;
 import com.beyond.match.community.post.model.dto.PostResponseDto;
 import com.beyond.match.community.post.model.dto.PostsResponseDto;
+import com.beyond.match.community.post.model.dto.UpdatePostRequestDto;
 import com.beyond.match.community.post.model.service.PostService;
 import com.beyond.match.community.post.model.vo.Category;
 import com.beyond.match.community.post.model.vo.Post;
@@ -36,20 +37,22 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.net.URI;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/community")
 @RequiredArgsConstructor
 public class PostController {
     private final PostService postService;
-    private final CommentService commentService;
 
     @GetMapping("/posts")
     public ResponseEntity<ItemsResponseDto<PostsResponseDto>> getPosts(@RequestParam int page, @RequestParam int numOfRows) {
@@ -66,15 +69,21 @@ public class PostController {
     }
 
     @GetMapping("/posts/{postId}")
-    public ResponseEntity<BaseResponseDto<PostResponseDto>> getPost(@PathVariable int postId) {
-        PostResponseDto postResponseDto = postService.getPost(postId);
+    public ResponseEntity<BaseResponseDto<PostResponseDto>> getPost(
+            @PathVariable int postId,
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+
+        User user = userDetails.getUser();
+
+        PostResponseDto postResponseDto = postService.getPost(postId, user);
 
         return ResponseEntity.ok(new BaseResponseDto<>(HttpStatus.OK, postResponseDto));
     }
 
     @PostMapping("/posts")
-    public ResponseEntity<Post> createPost(
-            @RequestBody PostRequestDto postRequestDto,
+    public ResponseEntity<PostResponseDto> createPost(
+            @RequestPart("postRequestDto") PostRequestDto postRequestDto,
+            @RequestPart(value = "files", required = false) List<MultipartFile> files,
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
 
         User user = userDetails.getUser();
@@ -82,29 +91,46 @@ public class PostController {
         Category category = postService.findCategoryById(postRequestDto.getCategoryId())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 카테고리입니다."));
 
-        Post post = Post.builder()
-                .title(postRequestDto.getTitle())
-                .content(postRequestDto.getContent())
-                .user(user)
-                .category(category)
-                .build();
-
         // DB 저장 후 생성된 PK값을 사용하기 위해 DB에 먼저 저장
-        Post savedPost = postService.save(post);
+        Post savedPost = postService.createPost(postRequestDto, files, user, category);
+
+        List<AttachmentResponseDto> attachments = Optional.ofNullable(savedPost.getAttachments())
+                .orElseGet(Collections::emptyList)
+                .stream()
+                .map(att -> new AttachmentResponseDto(
+                        att.getAttachmentId(),
+                        att.getOriginalName(),
+                        att.getFileUrl()))
+                .toList();
+
+        PostResponseDto postResponseDto = new PostResponseDto(
+                savedPost.getTitle(),
+                savedPost.getUser().getProfileImage(),
+                savedPost.getUser().getNickname(),
+                savedPost.getUpdatedAt(),
+                savedPost.getUpdatedAt().isAfter(savedPost.getCreatedAt()),
+                savedPost.getViewCount(),
+                savedPost.getContent(),
+                List.of(), // 댓글은 생성 직후 없으므로 빈 리스트
+                attachments,
+                0,
+                false
+        );
 
         return ResponseEntity
                 .created(URI.create("/api/v1/community/posts/" + savedPost.getPostId()))
-                .body(savedPost);
+                .body(postResponseDto);
     }
 
     @PutMapping("/posts/{postId}")
     public ResponseEntity<BaseResponseDto<PostResponseDto>> updatePost(
-            @RequestBody PostRequestDto postRequestDto,
+            @RequestPart("updatePostRequestDto") UpdatePostRequestDto updatePostRequestDto,
+            @RequestPart(value = "files", required = false) List<MultipartFile> files,
             @AuthenticationPrincipal UserDetailsImpl userDetails,
             @PathVariable int postId) {
         User user = userDetails.getUser();
 
-        PostResponseDto updatedPostResponseDto = postService.updatePost(postRequestDto, user, postId);
+        PostResponseDto updatedPostResponseDto = postService.updatePost(updatePostRequestDto, files, user, postId);
 
         return ResponseEntity.ok(new BaseResponseDto<>(HttpStatus.OK, updatedPostResponseDto));
     }

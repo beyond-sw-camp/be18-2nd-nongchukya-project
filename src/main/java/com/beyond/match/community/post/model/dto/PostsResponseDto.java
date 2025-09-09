@@ -19,6 +19,8 @@ public class PostsResponseDto {
 
     private final long commentCount;
 
+    private final Long likeCount;
+
     private final LocalDateTime createdAt;
 
     private final int viewCount;
