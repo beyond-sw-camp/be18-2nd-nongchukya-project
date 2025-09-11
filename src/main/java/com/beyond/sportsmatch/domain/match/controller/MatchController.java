@@ -1,0 +1,103 @@
+package com.beyond.sportsmatch.domain.match.controller;
+
+
+import com.beyond.sportsmatch.auth.model.service.UserDetailsImpl;
+import com.beyond.sportsmatch.domain.match.model.dto.MatchApplicationResponseDto;
+import com.beyond.sportsmatch.domain.match.model.dto.MatchRequestDto;
+import com.beyond.sportsmatch.domain.match.model.entity.MatchApplication;
+import com.beyond.sportsmatch.domain.match.model.entity.MatchCompleted;
+import com.beyond.sportsmatch.domain.match.model.service.MatchService;
+import com.beyond.sportsmatch.domain.user.model.entity.User;
+import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Set;
+
+@RestController
+@RequestMapping("/api/v1/match-service")
+@RequiredArgsConstructor
+public class MatchController {
+    private final MatchService matchService;
+
+    // 매칭 신청
+    @PostMapping("/match-applications")
+    public ResponseEntity<MatchApplicationResponseDto> createMatch(@RequestBody MatchRequestDto requestDto,
+                                                                   @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        // 로그인된 유저 정보 가져오기
+        User user = userDetails.getUser();
+
+        MatchApplicationResponseDto matchApplicationResponseDto = matchService.saveMatch(requestDto, user);
+
+        return ResponseEntity.status(HttpStatus.OK).body(matchApplicationResponseDto);
+    }
+
+    // 매칭 조회
+    @GetMapping("/match-applications/{applicationId}")
+    public ResponseEntity<MatchApplicationResponseDto> getMatch(@PathVariable("applicationId") int applicationId) {
+
+        MatchApplication matchApplication = matchService.getMatch(applicationId);
+
+        return ResponseEntity.status(HttpStatus.OK).body(new MatchApplicationResponseDto(matchApplication));
+    }
+
+    // 매칭 신청 취소(매칭 신청 삭제)
+    @DeleteMapping("/match-applications/{applicationId}")
+    public ResponseEntity<String> deleteMatch(@PathVariable("applicationId") int applicationId) {
+
+        matchService.deleteMatch(applicationId);
+
+        return ResponseEntity.status(HttpStatus.OK).body("Match has been deleted.");
+    }
+
+    // 매칭 신청 리스트 조회
+    @GetMapping("/match-applications")
+    public ResponseEntity<List<MatchApplication>> getMatchByMatchApplicationId() {
+        List<MatchApplication> matchList = matchService.getMatches();
+
+        return ResponseEntity.status(HttpStatus.OK).body(matchList);
+    }
+
+    // 매칭 중인 리스트 조회
+    @GetMapping("/matching")
+    public ResponseEntity<Set<String>> getMatchingList() {
+        Set<String> matchingList = matchService.getMatchingList();
+        return ResponseEntity.status(HttpStatus.OK).body(matchingList);
+    }
+
+    // 마감 임박 매칭 리스트 조회 (1-2명)
+    @GetMapping("/imminent-matches")
+    public ResponseEntity<Set<String>> getImminentMatches() {
+        Set<String> imminentMatches = matchService.getImminentMatches();
+        return ResponseEntity.status(HttpStatus.OK).body(imminentMatches);
+    }
+
+    // 매칭 완료 리스트 조회
+    @GetMapping("/completed-matches")
+    public ResponseEntity<List<MatchCompleted>> getCompletedMatches() {
+        List<MatchCompleted> completedMatches = matchService.getCompletedMatches();
+        return ResponseEntity.status(HttpStatus.OK).body(completedMatches);
+    }
+
+    // 날짜별 매칭 리스트 조회
+    @GetMapping("/matches-by-date")
+    public ResponseEntity<List<MatchApplication>> getMatchesByDate(@RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        List<MatchApplication> matchesByDate = matchService.getMatchesByDate(date);
+        return ResponseEntity.status(HttpStatus.OK).body(matchesByDate);
+    }
+
+
+
+}
