@@ -10,7 +10,6 @@ import com.beyond.sportsmatch.domain.user.model.repository.SportRepository;
 import com.beyond.sportsmatch.domain.user.model.repository.UserLevelRepository;
 import com.beyond.sportsmatch.domain.user.model.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -57,7 +56,8 @@ public class UserLevelService {
 
         userLevel.setInterest(interest != null ? interest : false);
 
-        UserLevel saved = userLevelRepository.save(userLevel);
+        // 저장 후 flush로 updatedAt 자동 반영
+        UserLevel saved = userLevelRepository.saveAndFlush(userLevel);
 
         return UserLevelResponseDto.from(saved);
     }

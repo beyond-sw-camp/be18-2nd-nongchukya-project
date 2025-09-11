@@ -17,10 +17,10 @@ public class UserLevelResponseDto {
     public static UserLevelResponseDto from(UserLevel userLevel) {
         return new UserLevelResponseDto(
                 userLevel.getSport().getName(),
-                userLevel.getLevel().getName(),
-                userLevel.getLevel().getDescription(),
+                userLevel.getLevel() != null ? userLevel.getLevel().getName() : "",
+                userLevel.getLevel() != null ? userLevel.getLevel().getDescription() : "",
                 userLevel.getInterest(),
-                userLevel.getUpdatedAt().toString()
+                userLevel.getUpdatedAt() != null ? userLevel.getUpdatedAt().toString() : ""
         );
     }
 }
