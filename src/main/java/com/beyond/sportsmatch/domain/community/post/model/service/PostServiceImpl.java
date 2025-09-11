@@ -147,7 +147,7 @@ public class PostServiceImpl implements PostService {
         Post post = postRepository.findByIdWithUserAndComments(postId)
                 .orElseThrow(() -> new RuntimeException("게시글이 없습니다."));
 
-        if (!post.getUser().getId().equals(user.getId())) {
+        if (post.getUser().getUserId()!=(user.getUserId())) {
             throw new RuntimeException("작성자만 수정할 수 있습니다.");
         }
 

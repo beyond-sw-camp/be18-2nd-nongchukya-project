@@ -1,7 +1,7 @@
 package com.beyond.sportsmatch.domain.community.post.controller;
 
 import com.beyond.sportsmatch.domain.community.post.model.service.PostLikeService;
-import com.beyond.sportsmatch.auth.service.UserDetailsServiceImpl;
+import com.beyond.sportsmatch.auth.model.service.UserDetailsImpl;
 import com.beyond.sportsmatch.domain.user.model.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +21,7 @@ public class PostLikeController {
     @PostMapping("/{postId}/like")
     public ResponseEntity<String> postLike(
             @PathVariable("postId") int postId,
-            @AuthenticationPrincipal UserDetailsServiceImpl userDetails) {
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
 
         User user =  userDetails.getUser();
         boolean liked = postLikeService.postLike(postId, user);
@@ -36,7 +36,7 @@ public class PostLikeController {
     @GetMapping("/{postId}/like")
     public ResponseEntity<String> isLiked(
             @PathVariable("postId") int postId,
-            @AuthenticationPrincipal UserDetailsServiceImpl userDetails){
+            @AuthenticationPrincipal UserDetailsImpl userDetails){
         User user =  userDetails.getUser();
         boolean liked = postLikeService.isLiked(postId, user);
 

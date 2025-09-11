@@ -57,7 +57,7 @@ public class CommentServiceImpl implements CommentService {
         Comment comment = getCommentById(commentId);
 
         // 작성자 검증
-        if (!comment.getUser().getId().equals(user.getId())) {
+        if (comment.getUser().getUserId()!=(user.getUserId())) {
             throw new RuntimeException("작성자만 수정할 수 있습니다.");
         }
 
@@ -71,8 +71,8 @@ public class CommentServiceImpl implements CommentService {
     public void deleteComment(int commentId, User user) {
         Comment comment = getCommentById(commentId);
 
-        if (!comment.getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("작성자만 삭제할 수 있습니다.");
+        if (comment.getUser().getUserId()!=(user.getUserId())) {
+            throw new RuntimeException("작성자만 수정할 수 있습니다.");
         }
 
         // 자식 댓글이 있으면 모두 삭제 (cascade = ALL + orphanRemoval = true)

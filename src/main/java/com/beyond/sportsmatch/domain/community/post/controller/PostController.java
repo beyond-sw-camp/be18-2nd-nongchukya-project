@@ -16,6 +16,7 @@ package com.beyond.sportsmatch.domain.community.post.controller;
     DELETE api/v1/community/posts/{postId}
  */
 
+import com.beyond.sportsmatch.auth.model.service.UserDetailsImpl;
 import com.beyond.sportsmatch.common.dto.BaseResponseDto;
 import com.beyond.sportsmatch.common.dto.ItemsResponseDto;
 import com.beyond.sportsmatch.domain.community.post.model.dto.AttachmentResponseDto;
@@ -26,7 +27,7 @@ import com.beyond.sportsmatch.domain.community.post.model.dto.UpdatePostRequestD
 import com.beyond.sportsmatch.domain.community.post.model.service.PostService;
 import com.beyond.sportsmatch.domain.community.post.model.entity.Category;
 import com.beyond.sportsmatch.domain.community.post.model.entity.Post;
-import com.beyond.sportsmatch.auth.service.UserDetailsServiceImpl;
+
 import com.beyond.sportsmatch.domain.user.model.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -71,7 +72,7 @@ public class PostController {
     @GetMapping("/posts/{postId}")
     public ResponseEntity<BaseResponseDto<PostResponseDto>> getPost(
             @PathVariable int postId,
-            @AuthenticationPrincipal UserDetailsServiceImpl userDetails) {
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
 
         User user = userDetails.getUser();
 
@@ -84,7 +85,7 @@ public class PostController {
     public ResponseEntity<PostResponseDto> createPost(
             @RequestPart("postRequestDto") PostRequestDto postRequestDto,
             @RequestPart(value = "files", required = false) List<MultipartFile> files,
-            @AuthenticationPrincipal UserDetailsServiceImpl userDetails) {
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
 
         User user = userDetails.getUser();
 
@@ -126,7 +127,7 @@ public class PostController {
     public ResponseEntity<BaseResponseDto<PostResponseDto>> updatePost(
             @RequestPart("updatePostRequestDto") UpdatePostRequestDto updatePostRequestDto,
             @RequestPart(value = "files", required = false) List<MultipartFile> files,
-            @AuthenticationPrincipal UserDetailsServiceImpl userDetails,
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
             @PathVariable int postId) {
         User user = userDetails.getUser();
 
@@ -137,14 +138,14 @@ public class PostController {
 
     @DeleteMapping("/posts/{postId}")
     public ResponseEntity<BaseResponseDto<String>> deletePost(
-            @AuthenticationPrincipal UserDetailsServiceImpl userDetails,
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
             @PathVariable int postId){
         User user = userDetails.getUser();
 
         Post post = postService.getPostById(postId)
                 .orElseThrow(() -> new RuntimeException("게시글이 없습니다."));
 
-        if(!post.getUser().getId().equals(user.getId())){
+        if(post.getUser().getUserId()!=(user.getUserId())){
             throw new RuntimeException("작성자만 삭제할 수 있습니다.");
         }
 
