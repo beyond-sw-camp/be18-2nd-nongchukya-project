@@ -28,6 +28,7 @@ public class User {
     // 2. @Id @GeneratedValue(strategy = GenerationType.AUTO)
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "user_id")
     private int userId;
 
     @Column(nullable = false, unique = true, length = 30)
