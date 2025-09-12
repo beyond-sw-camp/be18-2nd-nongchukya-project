@@ -103,26 +103,27 @@ public class MatchServiceImpl implements MatchService {
         return matchRepo.findByMatchDate(date);
     }
 
-    // Key : match:sport:region:date:startTime:endTime
+    // Key : match:sportId:region:date:startTime:endTime
     private String getMatchKey(MatchApplication dto) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HHmm");
         String formattedStartTime = dto.getStartTime().format(formatter);
         String formattedEndTime = dto.getEndTime().format(formatter);
 
         return String.format("match:%s:%s:%s:%s-%s",
-                dto.getSport().getName(),
+                dto.getSport().getId(),
                 dto.getRegion(),
                 dto.getMatchDate(),
                 formattedStartTime,
                 formattedEndTime);
     }
 
-
+    // key : 매칭조건, value : userId
     public void addToMatchList(MatchApplication matchApplication) {
         String key = getMatchKey(matchApplication);
         String value = String.valueOf(matchApplication.getApplicantId().getUserId());
-        double score = matchRedisService.getZSetSize(key) + 1;
-        matchRedisService.addToZSet(key, value, score);
+        long ttl = 7 * 24 * 60 * 60 * 1000L;
+        long expireAt = System.currentTimeMillis() + ttl;
+        matchRedisService.addToZSet(key, value, expireAt);
         checkCount(matchApplication);
     }
 
