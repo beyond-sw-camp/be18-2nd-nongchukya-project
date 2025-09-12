@@ -6,8 +6,7 @@ import com.beyond.sportsmatch.domain.chat.model.repository.VoteResultRepository;
 import com.beyond.sportsmatch.domain.chat.model.entity.ChatRoom;
 import com.beyond.sportsmatch.domain.chat.model.entity.Vote;
 import com.beyond.sportsmatch.domain.chat.model.entity.VoteResult;
-import com.beyond.sportsmatch.auth.service.UserDetailsServiceImpl;
-import com.beyond.sportsmatch.domain.user.model.repository.UserRepository;
+import com.beyond.sportsmatch.auth.model.service.UserDetailsImpl;
 import com.google.gson.Gson;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +19,6 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class VoteService {
-    private final UserRepository userRepository;
     private final ChatRoomRepository chatRoomRepository;
     private final VoteRepository voteRepository;
     private final VoteResultRepository voteResultRepository;
@@ -39,7 +37,7 @@ public class VoteService {
     public void castVote(int voteId, String selectedOption) {
         Vote vote = voteRepository.findById(voteId).orElseThrow(()->
                 new EntityNotFoundException("투표를 찾을 수 없습니다."));
-        UserDetailsServiceImpl userDetails = (UserDetailsServiceImpl) SecurityContextHolder.getContext()
+        UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext()
                 .getAuthentication()
                 .getPrincipal();
         boolean alreadyVoted = voteResultRepository.existsByVoteAndUser(vote, userDetails.getUser());

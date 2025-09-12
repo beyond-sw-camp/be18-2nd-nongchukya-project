@@ -7,7 +7,7 @@ import com.beyond.sportsmatch.domain.community.comment.model.service.CommentServ
 import com.beyond.sportsmatch.domain.community.comment.model.entity.Comment;
 import com.beyond.sportsmatch.domain.community.post.model.service.PostService;
 import com.beyond.sportsmatch.domain.community.post.model.entity.Post;
-import com.beyond.sportsmatch.auth.service.UserDetailsServiceImpl;
+import com.beyond.sportsmatch.auth.model.service.UserDetailsImpl;
 import com.beyond.sportsmatch.domain.user.model.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -51,7 +51,7 @@ public class CommentController {
     @PostMapping("/comments")
     public ResponseEntity<CommentResponseDto> createComment(
             @RequestBody CommentRequestDto commentRequestDto,
-            @AuthenticationPrincipal UserDetailsServiceImpl userDetails,
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
             @PathVariable int postId){
 
         User user = userDetails.getUser();
@@ -66,7 +66,7 @@ public class CommentController {
     @PostMapping("/comments/{commentId}/replies")
         public ResponseEntity<CommentResponseDto> createReply(
             @RequestBody CommentRequestDto commentRequestDto,
-            @AuthenticationPrincipal UserDetailsServiceImpl userDetails,
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
             @PathVariable int postId,
             @PathVariable int commentId){
 
@@ -88,7 +88,7 @@ public class CommentController {
     @PutMapping("comments/{commentId}")
     public ResponseEntity<BaseResponseDto<CommentResponseDto>> updateComment(
             @RequestBody CommentRequestDto commentRequestDto,
-            @AuthenticationPrincipal UserDetailsServiceImpl userDetails,
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
             @PathVariable int commentId){
         User user = userDetails.getUser();
 
@@ -101,7 +101,7 @@ public class CommentController {
     @DeleteMapping("/comments/{commentId}")
     public ResponseEntity<BaseResponseDto<String>> deleteComment(
             @PathVariable int commentId,
-            @AuthenticationPrincipal UserDetailsServiceImpl userDetails) {
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
 
         User user = userDetails.getUser();
 
