@@ -18,6 +18,7 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
@@ -168,10 +169,10 @@ public class ChatService {
         for (JoinedChatRoom c : chatParticipants){
             if(c.getUser().getUserId()==(user.getUserId())){
                 return true;
-                }
             }
-        return false;
         }
+        return false;
+    }
 
     public int messageRead(int roomId) {
         ChatRoom chatRoom = chatRoomRepository.findById(roomId).orElseThrow(()-> new EntityNotFoundException("Chat Room Not Found"));
@@ -223,13 +224,13 @@ public class ChatService {
         chatRoomRepository.delete(chatRoom);
     }
 
-    public int getOrCreatePrivateRoom(int otherUserId) {
+    public int getOrCreatePrivateRoom(String otherNickname) {
         UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext()
                 .getAuthentication()
                 .getPrincipal();
         User user = userRepository.findByNickname(userDetails.getUser().getNickname()).orElseThrow(()->
                 new EntityNotFoundException("User Not Found"));
-        User otherUser = userRepository.findById(otherUserId).orElseThrow(()->
+        User otherUser = userRepository.findByNickname(otherNickname).orElseThrow(()->
                 new EntityNotFoundException("회원을 찾을 수 없습니다."));
         // 나와 상대방이 1:1채팅에 이미 참석하고 있다면 해당 roomId return
         Optional<ChatRoom> chatRoom = chatParticipantRepository.findExistingPrivateRoom(user.getUserId(), otherUser.getUserId());
@@ -247,5 +248,32 @@ public class ChatService {
         addParticipantToRoom(newRoom, otherUser);
 
         return newRoom.getChatRoomId();
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public Integer createRoomForMath(int matchId, String roomName, List<Integer> userIds) {
+        ChatRoom chatRoom = chatRoomRepository.findByMatchId(matchId).orElseGet(()->
+                chatRoomRepository.saveAndFlush(
+                        ChatRoom.builder()
+                                .chatRoomName(roomName)
+                                .isGroupChat("Y")
+                                .matchId(matchId)
+                                .build()
+                ));
+
+        Integer roomId = chatRoom.getChatRoomId();
+
+        for (Integer uid : userIds) {
+            boolean exists = chatParticipantRepository.existsByChatRoom_ChatRoomIdAndUser_UserId(roomId, uid);
+
+            if(!exists){
+                JoinedChatRoom join = JoinedChatRoom.builder()
+                        .chatRoom(chatRoom)
+                        .user(userRepository.getReferenceById(uid))
+                        .build();
+                chatParticipantRepository.save(join);
+            }
+        }
+        return roomId;
     }
 }
