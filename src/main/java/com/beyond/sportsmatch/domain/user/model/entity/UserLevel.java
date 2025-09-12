@@ -3,7 +3,6 @@ package com.beyond.sportsmatch.domain.user.model.entity;
 
 
 import com.beyond.sportsmatch.common.entity.BaseTimeEntity;
-import com.beyond.sportsmatch.domain.match.model.entity.Sport;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;

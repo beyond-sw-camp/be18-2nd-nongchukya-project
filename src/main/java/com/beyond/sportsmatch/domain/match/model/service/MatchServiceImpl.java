@@ -5,7 +5,7 @@ import com.beyond.sportsmatch.domain.match.model.dto.MatchApplicationResponseDto
 import com.beyond.sportsmatch.domain.match.model.dto.MatchRequestDto;
 import com.beyond.sportsmatch.domain.match.model.entity.MatchApplication;
 import com.beyond.sportsmatch.domain.match.model.entity.MatchCompleted;
-import com.beyond.sportsmatch.domain.match.model.entity.Sport;
+import com.beyond.sportsmatch.domain.user.model.entity.Sport;
 import com.beyond.sportsmatch.domain.match.model.repository.MatchCompletedRepo;
 import com.beyond.sportsmatch.domain.match.model.repository.MatchRepo;
 import com.beyond.sportsmatch.domain.match.model.repository.SportRepo;

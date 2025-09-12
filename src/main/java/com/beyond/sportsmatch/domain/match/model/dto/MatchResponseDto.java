@@ -1,6 +1,6 @@
 package com.beyond.sportsmatch.domain.match.model.dto;
 
-import com.beyond.sportsmatch.domain.match.model.entity.Sport;
+import com.beyond.sportsmatch.domain.user.model.entity.Sport;
 import com.beyond.sportsmatch.domain.user.model.entity.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.FetchType;

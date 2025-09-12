@@ -1,5 +1,6 @@
 package com.beyond.sportsmatch.domain.match.model.entity;
 
+import com.beyond.sportsmatch.domain.user.model.entity.Sport;
 import com.beyond.sportsmatch.domain.user.model.entity.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

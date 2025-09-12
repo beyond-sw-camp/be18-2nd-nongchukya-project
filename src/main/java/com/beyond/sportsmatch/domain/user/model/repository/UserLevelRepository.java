@@ -2,7 +2,7 @@ package com.beyond.sportsmatch.domain.user.model.repository;
 
 
 
-import com.beyond.sportsmatch.domain.match.model.entity.Sport;
+import com.beyond.sportsmatch.domain.user.model.entity.Sport;
 import com.beyond.sportsmatch.domain.user.model.entity.User;
 import com.beyond.sportsmatch.domain.user.model.entity.UserLevel;
 import com.beyond.sportsmatch.domain.user.model.entity.UserLevelId;

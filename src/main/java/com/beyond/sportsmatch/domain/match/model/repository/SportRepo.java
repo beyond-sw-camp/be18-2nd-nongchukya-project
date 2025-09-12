@@ -1,6 +1,6 @@
 package com.beyond.sportsmatch.domain.match.model.repository;
 
-import com.beyond.sportsmatch.domain.match.model.entity.Sport;
+import com.beyond.sportsmatch.domain.user.model.entity.Sport;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

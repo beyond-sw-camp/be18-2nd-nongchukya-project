@@ -1,6 +1,6 @@
 package com.beyond.sportsmatch.domain.mypage.model.service;
 
-import com.beyond.sportsmatch.domain.match.model.entity.Sport;
+import com.beyond.sportsmatch.domain.user.model.entity.Sport;
 import com.beyond.sportsmatch.domain.mypage.model.dto.UserLevelResponseDto;
 import com.beyond.sportsmatch.domain.user.model.entity.Level;
 import com.beyond.sportsmatch.domain.user.model.entity.User;
