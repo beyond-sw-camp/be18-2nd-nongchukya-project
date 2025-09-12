@@ -1,6 +1,7 @@
 package com.beyond.sportsmatch.domain.match.model.service;
 
 
+import com.beyond.sportsmatch.domain.chat.model.service.ChatService;
 import com.beyond.sportsmatch.domain.match.model.dto.MatchApplicationResponseDto;
 import com.beyond.sportsmatch.domain.match.model.dto.MatchRequestDto;
 import com.beyond.sportsmatch.domain.match.model.entity.MatchApplication;
@@ -14,6 +15,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationAdapter;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -30,6 +34,7 @@ public class MatchServiceImpl implements MatchService {
     private final MatchRedisService matchRedisService;
     private final SportRepo sportRepo;
     private final RedisTemplate<String, String> redisTemplate;
+    private final ChatService chatService;
 
     @Override
     @Transactional
@@ -154,7 +159,22 @@ public class MatchServiceImpl implements MatchService {
             }
             completed.setParticipants(participants);
 
-            matchCompletedRepo.save(completed);
+            MatchCompleted saved = matchCompletedRepo.save(completed);
+            int matchPk = saved.getMatchId();
+
+            List<Integer> userIdList = memberIds.stream().map(Integer::valueOf).toList();
+
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    String roomName = "%s %s".formatted(
+                            saved.getSport().getName(),
+                            saved.getRegion(),
+                            saved.getMatchDate()
+                    );
+                    chatService.createRoomForMath(matchPk, roomName, userIdList);
+                }
+            });
 
             redisTemplate.delete(key);
         }
