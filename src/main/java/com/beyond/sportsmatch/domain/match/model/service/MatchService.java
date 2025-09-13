@@ -13,13 +13,13 @@ import java.util.List;
 import java.util.Set;
 
 public interface MatchService {
-    MatchApplicationResponseDto saveMatch(MatchRequestDto requestDto, User user);
+    void saveMatch(MatchRequestDto requestDto, User user);
 
     MatchApplication getMatch(int applicationId);
 
     void deleteMatch(int applicationId);
 
-    List<MatchApplication> getMatches();
+    List<MatchApplicationResponseDto> getMatches(int page, int numOfRows, User applicantId);
 
     Set<String> getMatchingList();
 
@@ -28,4 +28,8 @@ public interface MatchService {
     List<MatchCompleted> getCompletedMatches();
 
     List<MatchApplication> getMatchesByDate(LocalDate date);
+
+    int getTotalCount();
+
+    int getTotalCountForUser(User applicantId);
 }

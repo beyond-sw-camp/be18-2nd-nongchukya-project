@@ -17,28 +17,18 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MatchResponseDto {
-    private int matchId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn
     private Sport sport;
 
-    @Column
     private String region;
 
-    @Column
     private LocalDate matchDate;
 
-    @Column
     private String matchTime;
 
-    @Column
     private String genderOption;
 
-    @Column
-    private LocalDateTime createdAt;
+    private String status;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "applicant_id")
-    private User applicantId;
+    private int applicantId;
 }

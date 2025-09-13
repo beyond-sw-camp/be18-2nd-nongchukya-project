@@ -12,11 +12,14 @@ import com.beyond.sportsmatch.domain.match.model.repository.MatchRepo;
 import com.beyond.sportsmatch.domain.match.model.repository.SportRepo;
 import com.beyond.sportsmatch.domain.user.model.entity.User;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationAdapter;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.LocalDate;
@@ -38,7 +41,7 @@ public class MatchServiceImpl implements MatchService {
 
     @Override
     @Transactional
-    public MatchApplicationResponseDto saveMatch(MatchRequestDto requestDto, User applicant) {
+    public void saveMatch(MatchRequestDto requestDto, User applicant) {
         Sport sport = sportRepo.findByName(requestDto.getSport())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid sport name: " + requestDto.getSport()));
 
@@ -48,8 +51,6 @@ public class MatchServiceImpl implements MatchService {
         MatchApplication savedMatch = matchRepo.save(matchApplication);
 
         addToMatchList(savedMatch);
-
-        return new MatchApplicationResponseDto(savedMatch);
     }
 
     @Override
@@ -71,8 +72,23 @@ public class MatchServiceImpl implements MatchService {
     }
 
     @Override
-    public List<MatchApplication> getMatches() {
-        return matchRepo.findAll();
+    public List<MatchApplicationResponseDto> getMatches(int page, int numOfRows, User applicantId) {
+        // 생성일 기준으로 내림차순 정렬
+        Pageable pageable = PageRequest.of(page - 1, numOfRows, Sort.by("createdAt").descending());
+
+        Page<MatchApplication> matchPage = matchRepo.findByApplicantId(applicantId, pageable);
+
+        return matchPage.map(MatchApplicationResponseDto::new).getContent();
+    }
+
+    @Override
+    public int getTotalCount() {
+        return (int) matchRepo.count();
+    }
+
+    @Override
+    public int getTotalCountForUser(User applicantId) {
+        return matchRepo.countByApplicantId(applicantId);
     }
 
     @Override
@@ -146,12 +162,11 @@ public class MatchServiceImpl implements MatchService {
             completed.setRegion(matchApplication.getRegion());
             completed.setMatchDate(matchApplication.getMatchDate());
             String matchTime = matchApplication.getStartTime().format(DateTimeFormatter.ofPattern("HH:mm")) +
-                    " - " +
-                    matchApplication.getEndTime().format(DateTimeFormatter.ofPattern("HH:mm"));
+                        " - " + matchApplication.getEndTime().format(DateTimeFormatter.ofPattern("HH:mm"));
             completed.setMatchTime(matchTime);
             completed.setGenderOption(matchApplication.getGenderOption());
             completed.setCreatedAt(LocalDateTime.now());
-
+            
             Set<User> participants = new HashSet<>();
             for (String memberId : memberIds) {
                 User user = new User();
@@ -165,6 +180,7 @@ public class MatchServiceImpl implements MatchService {
 
             List<Integer> userIdList = memberIds.stream().map(Integer::valueOf).toList();
 
+            // 매칭완료 시, 채팅방 개설
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
                 public void afterCommit() {

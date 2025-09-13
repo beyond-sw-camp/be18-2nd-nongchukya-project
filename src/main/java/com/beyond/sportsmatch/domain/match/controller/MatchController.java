@@ -2,6 +2,7 @@ package com.beyond.sportsmatch.domain.match.controller;
 
 
 import com.beyond.sportsmatch.auth.model.service.UserDetailsImpl;
+import com.beyond.sportsmatch.common.dto.ItemsResponseDto;
 import com.beyond.sportsmatch.domain.match.model.dto.MatchApplicationResponseDto;
 import com.beyond.sportsmatch.domain.match.model.dto.MatchRequestDto;
 import com.beyond.sportsmatch.domain.match.model.entity.MatchApplication;
@@ -35,14 +36,14 @@ public class MatchController {
 
     // 매칭 신청
     @PostMapping("/match-applications")
-    public ResponseEntity<MatchApplicationResponseDto> createMatch(@RequestBody MatchRequestDto requestDto,
-                                                                   @AuthenticationPrincipal UserDetailsImpl userDetails) {
+    public ResponseEntity<String> createMatch(@RequestBody MatchRequestDto requestDto,
+                                              @AuthenticationPrincipal UserDetailsImpl userDetails) {
         // 로그인된 유저 정보 가져오기
         User user = userDetails.getUser();
 
-        MatchApplicationResponseDto matchApplicationResponseDto = matchService.saveMatch(requestDto, user);
+        matchService.saveMatch(requestDto, user);
 
-        return ResponseEntity.status(HttpStatus.OK).body(matchApplicationResponseDto);
+        return ResponseEntity.status(HttpStatus.OK).body("매칭 신청이 성공적으로 완료되었습니다.");
     }
 
     // 매칭 조회
@@ -64,17 +65,36 @@ public class MatchController {
     }
 
     // 매칭 신청 리스트 조회
-    @GetMapping("/match-applications")
-    public ResponseEntity<List<MatchApplication>> getMatchByMatchApplicationId() {
-        List<MatchApplication> matchList = matchService.getMatches();
+//    @GetMapping("/match-applications")
+//    public ResponseEntity<ItemsResponseDto<MatchApplicationResponseDto>> getMatches(@RequestParam int page,
+//                                                                                    @RequestParam int numOfRows) {
+//
+//        int totalCount = matchService.getTotalCount();
+//        List<MatchApplicationResponseDto> departments = matchService.getMatches(page, numOfRows);
+//
+//        return ResponseEntity.ok(
+//                new ItemsResponseDto<>(HttpStatus.OK, departments, page, totalCount));
+//    }
 
-        return ResponseEntity.status(HttpStatus.OK).body(matchList);
+    // 매칭 신청 리스트 조회 (사용자 본인것만)
+    @GetMapping("/match-applications")
+    public ResponseEntity<ItemsResponseDto<MatchApplicationResponseDto>> getMatches(@RequestParam int page,
+                                                                                    @RequestParam int numOfRows,
+                                                                                    @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        User applicant = userDetails.getUser();
+
+        int totalCount = matchService.getTotalCountForUser(applicant);
+        List<MatchApplicationResponseDto> matches = matchService.getMatches(page, numOfRows, applicant);
+
+        return ResponseEntity.ok(
+                new ItemsResponseDto<>(HttpStatus.OK, matches, page, totalCount));
     }
 
     // 매칭 중인 리스트 조회
     @GetMapping("/matching")
     public ResponseEntity<Set<String>> getMatchingList() {
         Set<String> matchingList = matchService.getMatchingList();
+
         return ResponseEntity.status(HttpStatus.OK).body(matchingList);
     }
 
@@ -82,6 +102,7 @@ public class MatchController {
     @GetMapping("/imminent-matches")
     public ResponseEntity<Set<String>> getImminentMatches() {
         Set<String> imminentMatches = matchService.getImminentMatches();
+
         return ResponseEntity.status(HttpStatus.OK).body(imminentMatches);
     }
 
@@ -89,6 +110,7 @@ public class MatchController {
     @GetMapping("/completed-matches")
     public ResponseEntity<List<MatchCompleted>> getCompletedMatches() {
         List<MatchCompleted> completedMatches = matchService.getCompletedMatches();
+
         return ResponseEntity.status(HttpStatus.OK).body(completedMatches);
     }
 
@@ -96,6 +118,7 @@ public class MatchController {
     @GetMapping("/matches-by-date")
     public ResponseEntity<List<MatchApplication>> getMatchesByDate(@RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         List<MatchApplication> matchesByDate = matchService.getMatchesByDate(date);
+
         return ResponseEntity.status(HttpStatus.OK).body(matchesByDate);
     }
 
