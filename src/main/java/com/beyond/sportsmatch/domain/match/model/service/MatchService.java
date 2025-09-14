@@ -2,11 +2,11 @@ package com.beyond.sportsmatch.domain.match.model.service;
 
 
 
+import com.beyond.sportsmatch.domain.match.model.dto.CompletedMatchResponseDto;
 import com.beyond.sportsmatch.domain.match.model.dto.MatchApplicationResponseDto;
-import com.beyond.sportsmatch.domain.match.model.dto.MatchRequestDto;
+import com.beyond.sportsmatch.domain.match.model.dto.MatchApplicationRequestDto;
 import com.beyond.sportsmatch.domain.match.model.dto.MatchResponseDto;
 import com.beyond.sportsmatch.domain.match.model.entity.MatchApplication;
-import com.beyond.sportsmatch.domain.match.model.entity.MatchCompleted;
 import com.beyond.sportsmatch.domain.user.model.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Set;
 
 public interface MatchService {
-    void saveMatch(MatchRequestDto requestDto, User user);
+    void saveMatch(MatchApplicationRequestDto requestDto, User user);
 
     MatchApplication getMatch(int applicationId);
 
@@ -28,7 +28,7 @@ public interface MatchService {
 
     Set<String> getImminentMatches();
 
-    List<MatchCompleted> getCompletedMatches();
+    List<CompletedMatchResponseDto> getCompletedMatches(User user);
 
     List<MatchApplication> getMatchesByDate(LocalDate date);
 

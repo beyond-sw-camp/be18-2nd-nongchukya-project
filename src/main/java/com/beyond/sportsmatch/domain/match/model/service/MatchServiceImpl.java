@@ -2,15 +2,16 @@ package com.beyond.sportsmatch.domain.match.model.service;
 
 
 import com.beyond.sportsmatch.domain.chat.model.service.ChatService;
+import com.beyond.sportsmatch.domain.match.model.dto.CompletedMatchResponseDto;
 import com.beyond.sportsmatch.domain.match.model.dto.MatchApplicationResponseDto;
-import com.beyond.sportsmatch.domain.match.model.dto.MatchRequestDto;
+import com.beyond.sportsmatch.domain.match.model.dto.MatchApplicationRequestDto;
 import com.beyond.sportsmatch.domain.match.model.dto.MatchResponseDto;
 import com.beyond.sportsmatch.domain.match.model.entity.MatchApplication;
 import com.beyond.sportsmatch.domain.match.model.entity.MatchCompleted;
 import com.beyond.sportsmatch.domain.user.model.entity.Sport;
 import com.beyond.sportsmatch.domain.match.model.repository.MatchCompletedRepository;
 import com.beyond.sportsmatch.domain.match.model.repository.MatchRepository;
-import com.beyond.sportsmatch.domain.match.model.repository.SportRepository;
+import com.beyond.sportsmatch.domain.user.model.repository.SportRepository;
 import com.beyond.sportsmatch.domain.user.model.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -29,6 +30,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -42,7 +44,7 @@ public class MatchServiceImpl implements MatchService {
 
     @Override
     @Transactional
-    public void saveMatch(MatchRequestDto requestDto, User applicant) {
+    public void saveMatch(MatchApplicationRequestDto requestDto, User applicant) {
         Sport sport = sportRepository.findByName(requestDto.getSport())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid sport name: " + requestDto.getSport()));
 
@@ -126,8 +128,12 @@ public class MatchServiceImpl implements MatchService {
     }
 
     @Override
-    public List<MatchCompleted> getCompletedMatches() {
-        return matchCompletedRepository.findAll();
+    public List<CompletedMatchResponseDto> getCompletedMatches(User user) {
+        List<MatchCompleted> completedMatches = matchCompletedRepository.findAllByUserId(user.getUserId());
+
+        return completedMatches.stream()
+                .map(CompletedMatchResponseDto::fromEntity)
+                .collect(Collectors.toList());
     }
 
     @Override

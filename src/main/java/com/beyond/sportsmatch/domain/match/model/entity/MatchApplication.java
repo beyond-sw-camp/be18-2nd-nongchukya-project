@@ -1,6 +1,6 @@
 package com.beyond.sportsmatch.domain.match.model.entity;
 
-import com.beyond.sportsmatch.domain.match.model.dto.MatchRequestDto;
+import com.beyond.sportsmatch.domain.match.model.dto.MatchApplicationRequestDto;
 import com.beyond.sportsmatch.domain.user.model.entity.Sport;
 import com.beyond.sportsmatch.domain.user.model.entity.User;
 import jakarta.persistence.Column;
@@ -53,13 +53,13 @@ public class MatchApplication {
     @JoinColumn(name = "applicant_id")
     private User applicantId;
 
-    public void setMatchApplication(MatchRequestDto matchRequestDto, User user, Sport sport) {
+    public void setMatchApplication(MatchApplicationRequestDto matchApplicationRequestDto, User user, Sport sport) {
         this.sport = sport;
-        this.region = matchRequestDto.getRegion();
-        this.matchDate = matchRequestDto.getMatchDate();
-        this.startTime = matchRequestDto.getStartTime();
-        this.endTime = matchRequestDto.getEndTime();
-        this.genderOption = matchRequestDto.getGenderOption();
+        this.region = matchApplicationRequestDto.getRegion();
+        this.matchDate = matchApplicationRequestDto.getMatchDate();
+        this.startTime = matchApplicationRequestDto.getStartTime();
+        this.endTime = matchApplicationRequestDto.getEndTime();
+        this.genderOption = matchApplicationRequestDto.getGenderOption();
         this.createdAt = LocalDateTime.now();
         this.applicantId = user;
     }

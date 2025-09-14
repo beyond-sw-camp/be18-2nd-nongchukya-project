@@ -11,7 +11,7 @@ import java.time.LocalTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class MatchRequestDto {
+public class MatchApplicationRequestDto {
 
     private String sport;
 

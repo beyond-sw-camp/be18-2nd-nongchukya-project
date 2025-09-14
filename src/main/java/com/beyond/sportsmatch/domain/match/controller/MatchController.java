@@ -3,8 +3,9 @@ package com.beyond.sportsmatch.domain.match.controller;
 
 import com.beyond.sportsmatch.auth.model.service.UserDetailsImpl;
 import com.beyond.sportsmatch.common.dto.ItemsResponseDto;
+import com.beyond.sportsmatch.domain.match.model.dto.CompletedMatchResponseDto;
 import com.beyond.sportsmatch.domain.match.model.dto.MatchApplicationResponseDto;
-import com.beyond.sportsmatch.domain.match.model.dto.MatchRequestDto;
+import com.beyond.sportsmatch.domain.match.model.dto.MatchApplicationRequestDto;
 import com.beyond.sportsmatch.domain.match.model.dto.MatchResponseDto;
 import com.beyond.sportsmatch.domain.match.model.entity.MatchApplication;
 import com.beyond.sportsmatch.domain.match.model.entity.MatchCompleted;
@@ -40,7 +41,7 @@ public class MatchController {
 
     // 매칭 신청
     @PostMapping("/match-applications")
-    public ResponseEntity<String> createMatch(@RequestBody MatchRequestDto requestDto,
+    public ResponseEntity<String> createMatch(@RequestBody MatchApplicationRequestDto requestDto,
                                               @AuthenticationPrincipal UserDetailsImpl userDetails) {
         // 로그인된 유저 정보 가져오기
         User user = userDetails.getUser();
@@ -106,7 +107,7 @@ public class MatchController {
 //    }
 
     // 매칭 중인 리스트 조회 (사용자 본인것만)
-    @GetMapping("/my-matches")
+    @GetMapping("/my/matches")
     public ResponseEntity<Page<MatchResponseDto>> getMatchingList(@PageableDefault(size = 5, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
                                                                   @AuthenticationPrincipal UserDetailsImpl userDetails) {
         User user = userDetails.getUser();
@@ -118,20 +119,30 @@ public class MatchController {
         return ResponseEntity.ok(matches);
     }
 
+    // 매칭 완료 리스트 조회
+//    @GetMapping("/completed-matches")
+//    public ResponseEntity<List<MatchCompleted>> getCompletedMatches() {
+//        List<MatchCompleted> completedMatches = matchService.getCompletedMatches();
+//
+//        return ResponseEntity.status(HttpStatus.OK).body(completedMatches);
+//    }
+
+    // 매칭 완료 리스트 조회
+    @GetMapping("/my/completed-matches")
+    public ResponseEntity<List<CompletedMatchResponseDto>> getCompletedMatches(@AuthenticationPrincipal UserDetailsImpl userDetails) {
+        User user = userDetails.getUser();
+
+        List<CompletedMatchResponseDto> completedMatches = matchService.getCompletedMatches(user);
+
+        return ResponseEntity.status(HttpStatus.OK).body(completedMatches);
+    }
+
     // 마감 임박 매칭 리스트 조회 (1-2명)
     @GetMapping("/imminent-matches")
     public ResponseEntity<Set<String>> getImminentMatches() {
         Set<String> imminentMatches = matchService.getImminentMatches();
 
         return ResponseEntity.status(HttpStatus.OK).body(imminentMatches);
-    }
-
-    // 매칭 완료 리스트 조회
-    @GetMapping("/completed-matches")
-    public ResponseEntity<List<MatchCompleted>> getCompletedMatches() {
-        List<MatchCompleted> completedMatches = matchService.getCompletedMatches();
-
-        return ResponseEntity.status(HttpStatus.OK).body(completedMatches);
     }
 
     // 날짜별 매칭 리스트 조회
