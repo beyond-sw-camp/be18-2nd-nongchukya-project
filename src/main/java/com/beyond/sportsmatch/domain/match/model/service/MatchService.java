@@ -4,9 +4,12 @@ package com.beyond.sportsmatch.domain.match.model.service;
 
 import com.beyond.sportsmatch.domain.match.model.dto.MatchApplicationResponseDto;
 import com.beyond.sportsmatch.domain.match.model.dto.MatchRequestDto;
+import com.beyond.sportsmatch.domain.match.model.dto.MatchResponseDto;
 import com.beyond.sportsmatch.domain.match.model.entity.MatchApplication;
 import com.beyond.sportsmatch.domain.match.model.entity.MatchCompleted;
 import com.beyond.sportsmatch.domain.user.model.entity.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -19,9 +22,9 @@ public interface MatchService {
 
     void deleteMatch(int applicationId);
 
-    List<MatchApplicationResponseDto> getMatches(int page, int numOfRows, User applicantId);
+    List<MatchApplicationResponseDto> getMatchApplications(int page, int numOfRows, User applicantId);
 
-    Set<String> getMatchingList();
+//    List<MatchResponseDto> getMatches(int page, int numOfRows);
 
     Set<String> getImminentMatches();
 
@@ -32,4 +35,6 @@ public interface MatchService {
     int getTotalCount();
 
     int getTotalCountForUser(User applicantId);
+
+    Page<MatchResponseDto> getMatchesByUser(User user, Pageable pageable);
 }

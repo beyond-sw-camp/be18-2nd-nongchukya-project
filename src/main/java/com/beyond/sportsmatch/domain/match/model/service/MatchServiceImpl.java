@@ -4,12 +4,13 @@ package com.beyond.sportsmatch.domain.match.model.service;
 import com.beyond.sportsmatch.domain.chat.model.service.ChatService;
 import com.beyond.sportsmatch.domain.match.model.dto.MatchApplicationResponseDto;
 import com.beyond.sportsmatch.domain.match.model.dto.MatchRequestDto;
+import com.beyond.sportsmatch.domain.match.model.dto.MatchResponseDto;
 import com.beyond.sportsmatch.domain.match.model.entity.MatchApplication;
 import com.beyond.sportsmatch.domain.match.model.entity.MatchCompleted;
 import com.beyond.sportsmatch.domain.user.model.entity.Sport;
-import com.beyond.sportsmatch.domain.match.model.repository.MatchCompletedRepo;
-import com.beyond.sportsmatch.domain.match.model.repository.MatchRepo;
-import com.beyond.sportsmatch.domain.match.model.repository.SportRepo;
+import com.beyond.sportsmatch.domain.match.model.repository.MatchCompletedRepository;
+import com.beyond.sportsmatch.domain.match.model.repository.MatchRepository;
+import com.beyond.sportsmatch.domain.match.model.repository.SportRepository;
 import com.beyond.sportsmatch.domain.user.model.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -32,68 +33,78 @@ import java.util.Set;
 @Service
 @RequiredArgsConstructor
 public class MatchServiceImpl implements MatchService {
-    private final MatchRepo matchRepo;
-    private final MatchCompletedRepo matchCompletedRepo;
+    private final MatchRepository matchRepository;
+    private final MatchCompletedRepository matchCompletedRepository;
     private final MatchRedisService matchRedisService;
-    private final SportRepo sportRepo;
+    private final SportRepository sportRepository;
     private final RedisTemplate<String, String> redisTemplate;
     private final ChatService chatService;
 
     @Override
     @Transactional
     public void saveMatch(MatchRequestDto requestDto, User applicant) {
-        Sport sport = sportRepo.findByName(requestDto.getSport())
+        Sport sport = sportRepository.findByName(requestDto.getSport())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid sport name: " + requestDto.getSport()));
 
         MatchApplication matchApplication = new MatchApplication();
         matchApplication.setMatchApplication(requestDto, applicant, sport);
 
-        MatchApplication savedMatch = matchRepo.save(matchApplication);
+        MatchApplication savedMatch = matchRepository.save(matchApplication);
 
         addToMatchList(savedMatch);
     }
 
     @Override
     public MatchApplication getMatch(int applicationId) {
-        return matchRepo.findById(applicationId).orElse(null);
+        return matchRepository.findById(applicationId).orElse(null);
     }
 
     @Override
     @Transactional
     public void deleteMatch(int applicationId) {
-        MatchApplication matchApplication = matchRepo.findById(applicationId)
+        MatchApplication matchApplication = matchRepository.findById(applicationId)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid application ID: " + applicationId));
 
         String key = getMatchKey(matchApplication);
         String value = String.valueOf(matchApplication.getApplicantId().getUserId());
 
         matchRedisService.removeFromZSet(key, value);
-        matchRepo.deleteById(applicationId);
+        matchRepository.deleteById(applicationId);
     }
 
     @Override
-    public List<MatchApplicationResponseDto> getMatches(int page, int numOfRows, User applicantId) {
+    public List<MatchApplicationResponseDto> getMatchApplications(int page, int numOfRows, User applicantId) {
         // 생성일 기준으로 내림차순 정렬
         Pageable pageable = PageRequest.of(page - 1, numOfRows, Sort.by("createdAt").descending());
 
-        Page<MatchApplication> matchPage = matchRepo.findByApplicantId(applicantId, pageable);
+        Page<MatchApplication> matchPage = matchRepository.findByApplicantId(applicantId, pageable);
 
         return matchPage.map(MatchApplicationResponseDto::new).getContent();
     }
 
     @Override
+    public Page<MatchResponseDto> getMatchesByUser(User user, Pageable pageable) {
+        Page<MatchApplication> applicationsPage = matchRepository.findByApplicantId(user, pageable);
+
+        // Page 객체의 map 메소드를 사용
+        return applicationsPage.map(application -> {
+            // 3. 각 신청서(application) 정보로 Redis Key를 생성합니다.
+            String poolKey = getMatchKey(application);
+
+            Long currentCount = matchRedisService.getZSetSize(poolKey);
+
+            return MatchResponseDto.fromEntity(application, currentCount);
+        });
+    }
+
+    @Override
     public int getTotalCount() {
-        return (int) matchRepo.count();
+        return (int) matchRepository.count();
     }
 
     @Override
     public int getTotalCountForUser(User applicantId) {
-        return matchRepo.countByApplicantId(applicantId);
-    }
-
-    @Override
-    public Set<String> getMatchingList() {
-        return matchRedisService.getAllKeys();
+        return matchRepository.countByApplicantId(applicantId);
     }
 
     @Override
@@ -104,7 +115,7 @@ public class MatchServiceImpl implements MatchService {
             long size = matchRedisService.getZSetSize(key);
             String[] keyParts = key.split(":");
             String sportName = keyParts[1];
-            Sport sport = sportRepo.findByName(sportName)
+            Sport sport = sportRepository.findByName(sportName)
                     .orElseThrow(() -> new IllegalArgumentException("Invalid sport name: " + sportName));
 
             if (size >= sport.getRequiredPersonnel() - 2 && size < sport.getRequiredPersonnel()) {
@@ -116,12 +127,12 @@ public class MatchServiceImpl implements MatchService {
 
     @Override
     public List<MatchCompleted> getCompletedMatches() {
-        return matchCompletedRepo.findAll();
+        return matchCompletedRepository.findAll();
     }
 
     @Override
     public List<MatchApplication> getMatchesByDate(LocalDate date) {
-        return matchRepo.findByMatchDate(date);
+        return matchRepository.findByMatchDate(date);
     }
 
     // Key : match:sportId:region:date:startTime:endTime
@@ -175,7 +186,7 @@ public class MatchServiceImpl implements MatchService {
             }
             completed.setParticipants(participants);
 
-            MatchCompleted saved = matchCompletedRepo.save(completed);
+            MatchCompleted saved = matchCompletedRepository.save(completed);
             int matchPk = saved.getMatchId();
 
             List<Integer> userIdList = memberIds.stream().map(Integer::valueOf).toList();

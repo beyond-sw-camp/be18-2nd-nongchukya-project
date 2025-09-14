@@ -36,6 +36,11 @@ public class MatchRedisService {
         return redisTemplate.opsForZSet().zCard(key);
     }
 
+    // ZSet의 일정 범위 값 가져오기 (ZREVRANGE)
+    public Set<String> getZSetMembersByRange(String key, int start, int end) {
+        return redisTemplate.opsForZSet().reverseRange(key, start, end);
+    }
+
     // key 조회 (SCAN)
     public Set<String> getAllKeys() {
         Set<String> keys = new HashSet<>();
@@ -49,4 +54,5 @@ public class MatchRedisService {
         });
         return keys;
     }
+
 }

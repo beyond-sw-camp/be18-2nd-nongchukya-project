@@ -5,11 +5,16 @@ import com.beyond.sportsmatch.auth.model.service.UserDetailsImpl;
 import com.beyond.sportsmatch.common.dto.ItemsResponseDto;
 import com.beyond.sportsmatch.domain.match.model.dto.MatchApplicationResponseDto;
 import com.beyond.sportsmatch.domain.match.model.dto.MatchRequestDto;
+import com.beyond.sportsmatch.domain.match.model.dto.MatchResponseDto;
 import com.beyond.sportsmatch.domain.match.model.entity.MatchApplication;
 import com.beyond.sportsmatch.domain.match.model.entity.MatchCompleted;
 import com.beyond.sportsmatch.domain.match.model.service.MatchService;
 import com.beyond.sportsmatch.domain.user.model.entity.User;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,7 +29,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -66,36 +70,52 @@ public class MatchController {
 
     // 매칭 신청 리스트 조회
 //    @GetMapping("/match-applications")
-//    public ResponseEntity<ItemsResponseDto<MatchApplicationResponseDto>> getMatches(@RequestParam int page,
+//    public ResponseEntity<ItemsResponseDto<MatchApplicationResponseDto>> getMatchApplications(@RequestParam int page,
 //                                                                                    @RequestParam int numOfRows) {
 //
 //        int totalCount = matchService.getTotalCount();
-//        List<MatchApplicationResponseDto> departments = matchService.getMatches(page, numOfRows);
+//        List<MatchApplicationResponseDto> matches = matchService.getMatchApplications(page, numOfRows);
 //
 //        return ResponseEntity.ok(
-//                new ItemsResponseDto<>(HttpStatus.OK, departments, page, totalCount));
+//                new ItemsResponseDto<>(HttpStatus.OK, matches, page, totalCount));
 //    }
 
     // 매칭 신청 리스트 조회 (사용자 본인것만)
     @GetMapping("/match-applications")
-    public ResponseEntity<ItemsResponseDto<MatchApplicationResponseDto>> getMatches(@RequestParam int page,
-                                                                                    @RequestParam int numOfRows,
-                                                                                    @AuthenticationPrincipal UserDetailsImpl userDetails) {
+    public ResponseEntity<ItemsResponseDto<MatchApplicationResponseDto>> getMatchApplications(@RequestParam int page,
+                                                                                              @RequestParam int numOfRows,
+                                                                                              @AuthenticationPrincipal UserDetailsImpl userDetails) {
         User applicant = userDetails.getUser();
 
         int totalCount = matchService.getTotalCountForUser(applicant);
-        List<MatchApplicationResponseDto> matches = matchService.getMatches(page, numOfRows, applicant);
+        List<MatchApplicationResponseDto> matches = matchService.getMatchApplications(page, numOfRows, applicant);
 
         return ResponseEntity.ok(
                 new ItemsResponseDto<>(HttpStatus.OK, matches, page, totalCount));
     }
 
-    // 매칭 중인 리스트 조회
-    @GetMapping("/matching")
-    public ResponseEntity<Set<String>> getMatchingList() {
-        Set<String> matchingList = matchService.getMatchingList();
+    // 매칭 중인 리스트 조회 (전체)
+//    @GetMapping("/matches")
+//    public ResponseEntity<ItemsResponseDto<MatchResponseDto>> getMatches(@RequestParam int page,
+//                                                                         @RequestParam int numOfRows) {
+//        int totalCount = matchService.getTotalCount();
+//        List<MatchResponseDto> matches = matchService.getMatches(page, numOfRows);
+//
+//        return ResponseEntity.ok(
+//                new ItemsResponseDto<>(HttpStatus.OK, matches, page, totalCount));
+//    }
 
-        return ResponseEntity.status(HttpStatus.OK).body(matchingList);
+    // 매칭 중인 리스트 조회 (사용자 본인것만)
+    @GetMapping("/my-matches")
+    public ResponseEntity<Page<MatchResponseDto>> getMatchingList(@PageableDefault(size = 5, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
+                                                                  @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        User user = userDetails.getUser();
+
+        Page<MatchResponseDto> matches = matchService.getMatchesByUser(user, pageable);
+
+        System.out.println(matches);
+
+        return ResponseEntity.ok(matches);
     }
 
     // 마감 임박 매칭 리스트 조회 (1-2명)
