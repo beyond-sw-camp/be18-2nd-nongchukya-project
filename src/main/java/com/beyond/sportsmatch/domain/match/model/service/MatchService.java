@@ -43,4 +43,6 @@ public interface MatchService {
     MatchResultResponseDto saveMatchResult(int matchId, MatchResultRequestDto dto);
 
     List<MatchResultResponseDto> getMatchResults(User user);
+
+    void processFailedMatches();
 }

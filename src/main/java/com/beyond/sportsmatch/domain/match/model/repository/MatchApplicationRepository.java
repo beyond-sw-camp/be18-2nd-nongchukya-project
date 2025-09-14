@@ -17,4 +17,6 @@ public interface MatchApplicationRepository extends JpaRepository<MatchApplicati
     Page<MatchApplication> findByApplicantId(User applicantId, Pageable pageable);
 
     int countByApplicantId(User applicantId);
+
+    List<MatchApplication> findByMatchDateBefore(LocalDate now);
 }

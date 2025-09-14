@@ -257,4 +257,21 @@ public class MatchServiceImpl implements MatchService {
             redisTemplate.delete(key);
         }
     }
+
+    @Override
+    @Transactional
+    public void processFailedMatches() {
+//        List<MatchApplication> failedApplications = matchApplicationRepository.findByMatchDateBefore(LocalDate.now());
+        List<MatchApplication> failedApplications = matchApplicationRepository.findByMatchDate(LocalDate.now());
+
+        for (MatchApplication application : failedApplications) {
+            // Redis에서 삭제
+            String key = getMatchKey(application);
+            redisTemplate.delete(key);
+
+            // 데이터베이스에서 매칭 신청 정보 삭제
+            matchApplicationRepository.delete(application);
+        }
+
+    }
 }
