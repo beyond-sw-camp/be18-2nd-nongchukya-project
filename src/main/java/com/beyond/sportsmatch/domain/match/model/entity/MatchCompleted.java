@@ -25,6 +25,7 @@ public class MatchCompleted {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "match_id")
     private int matchId;
 
     @ManyToOne(fetch = FetchType.EAGER)

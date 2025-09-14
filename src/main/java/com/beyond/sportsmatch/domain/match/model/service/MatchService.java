@@ -5,7 +5,9 @@ package com.beyond.sportsmatch.domain.match.model.service;
 import com.beyond.sportsmatch.domain.match.model.dto.CompletedMatchResponseDto;
 import com.beyond.sportsmatch.domain.match.model.dto.MatchApplicationResponseDto;
 import com.beyond.sportsmatch.domain.match.model.dto.MatchApplicationRequestDto;
+import com.beyond.sportsmatch.domain.match.model.dto.MatchResultRequestDto;
 import com.beyond.sportsmatch.domain.match.model.dto.MatchResponseDto;
+import com.beyond.sportsmatch.domain.match.model.dto.MatchResultResponseDto;
 import com.beyond.sportsmatch.domain.match.model.entity.MatchApplication;
 import com.beyond.sportsmatch.domain.user.model.entity.User;
 import org.springframework.data.domain.Page;
@@ -37,4 +39,8 @@ public interface MatchService {
     int getTotalCountForUser(User applicantId);
 
     Page<MatchResponseDto> getMatchesByUser(User user, Pageable pageable);
+
+    MatchResultResponseDto saveMatchResult(int matchId, MatchResultRequestDto dto);
+
+    List<MatchResultResponseDto> getMatchResults(User user);
 }
