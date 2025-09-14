@@ -26,7 +26,7 @@ public interface MatchService {
 
     List<MatchApplicationResponseDto> getMatchApplications(int page, int numOfRows, User applicantId);
 
-//    List<MatchResponseDto> getMatches(int page, int numOfRows);
+    List<MatchApplication> getMatchApplications();
 
     Set<String> getImminentMatches();
 
@@ -38,6 +38,8 @@ public interface MatchService {
 
     int getTotalCountForUser(User applicantId);
 
+    Set<String> getMatches();
+
     Page<MatchResponseDto> getMatchesByUser(User user, Pageable pageable);
 
     MatchResultResponseDto saveMatchResult(int matchId, MatchResultRequestDto dto);
@@ -45,4 +47,6 @@ public interface MatchService {
     List<MatchResultResponseDto> getMatchResults(User user);
 
     void processFailedMatches();
+
+
 }

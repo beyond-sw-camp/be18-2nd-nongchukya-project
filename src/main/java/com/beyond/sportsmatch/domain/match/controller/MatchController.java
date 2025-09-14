@@ -10,7 +10,6 @@ import com.beyond.sportsmatch.domain.match.model.dto.MatchResultRequestDto;
 import com.beyond.sportsmatch.domain.match.model.dto.MatchResponseDto;
 import com.beyond.sportsmatch.domain.match.model.dto.MatchResultResponseDto;
 import com.beyond.sportsmatch.domain.match.model.entity.MatchApplication;
-import com.beyond.sportsmatch.domain.match.model.entity.MatchResult;
 import com.beyond.sportsmatch.domain.match.model.service.MatchService;
 import com.beyond.sportsmatch.domain.user.model.entity.User;
 import lombok.RequiredArgsConstructor;
@@ -71,17 +70,13 @@ public class MatchController {
         return ResponseEntity.status(HttpStatus.OK).body("Match has been deleted.");
     }
 
-    // 매칭 신청 리스트 조회
-//    @GetMapping("/match-applications")
-//    public ResponseEntity<ItemsResponseDto<MatchApplicationResponseDto>> getMatchApplications(@RequestParam int page,
-//                                                                                    @RequestParam int numOfRows) {
-//
-//        int totalCount = matchService.getTotalCount();
-//        List<MatchApplicationResponseDto> matches = matchService.getMatchApplications(page, numOfRows);
-//
-//        return ResponseEntity.ok(
-//                new ItemsResponseDto<>(HttpStatus.OK, matches, page, totalCount));
-//    }
+    // 매칭 신청 리스트 조회 (전체)
+    @GetMapping("/match-applications")
+    public ResponseEntity<List<MatchApplication>> getMatchByMatchApplicationId() {
+        List<MatchApplication> matchList = matchService.getMatchApplications();
+
+        return ResponseEntity.status(HttpStatus.OK).body(matchList);
+    }
 
     // 매칭 신청 리스트 조회 (사용자 본인것만)
     @GetMapping("/me/match-applications")
@@ -98,15 +93,12 @@ public class MatchController {
     }
 
     // 매칭 중인 리스트 조회 (전체)
-//    @GetMapping("/matches")
-//    public ResponseEntity<ItemsResponseDto<MatchResponseDto>> getMatches(@RequestParam int page,
-//                                                                         @RequestParam int numOfRows) {
-//        int totalCount = matchService.getTotalCount();
-//        List<MatchResponseDto> matches = matchService.getMatches(page, numOfRows);
-//
-//        return ResponseEntity.ok(
-//                new ItemsResponseDto<>(HttpStatus.OK, matches, page, totalCount));
-//    }
+    @GetMapping("/matches")
+    public ResponseEntity<Set<String>> getMatchingList() {
+        Set<String> matchingList = matchService.getMatches();
+
+        return ResponseEntity.status(HttpStatus.OK).body(matchingList);
+    }
 
     // 매칭 중인 리스트 조회 (사용자 본인것만)
     @GetMapping("/me/matches")

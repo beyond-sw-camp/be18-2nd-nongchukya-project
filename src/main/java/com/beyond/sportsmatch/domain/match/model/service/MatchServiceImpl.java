@@ -90,12 +90,20 @@ public class MatchServiceImpl implements MatchService {
     }
 
     @Override
+    public List<MatchApplication> getMatchApplications() {
+        return matchApplicationRepository.findAll();
+    }
+
+    @Override
+    public Set<String> getMatches() {
+        return matchRedisService.getAllKeys();
+    }
+
+    @Override
     public Page<MatchResponseDto> getMatchesByUser(User user, Pageable pageable) {
         Page<MatchApplication> applicationsPage = matchApplicationRepository.findByApplicantId(user, pageable);
 
-        // Page 객체의 map 메소드를 사용
         return applicationsPage.map(application -> {
-            // 3. 각 신청서(application) 정보로 Redis Key를 생성합니다.
             String poolKey = getMatchKey(application);
 
             Long currentCount = matchRedisService.getZSetSize(poolKey);
@@ -106,16 +114,13 @@ public class MatchServiceImpl implements MatchService {
 
     @Override
     public MatchResultResponseDto saveMatchResult(int matchId, MatchResultRequestDto dto) {
-        // 1. 매칭 완료된 경기 찾기
         MatchCompleted matchCompleted = matchCompletedRepository.findById(matchId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 ID의 경기를 찾을 수 없습니다. matchId=" + matchId));
 
-        // 2. 이미 결과가 등록되어 있는지 확인
         if (matchResultRepository.existsByMatch(matchCompleted)) {
             throw new IllegalStateException("이미 결과가 등록된 경기입니다.");
         }
 
-        // 3. 엔티티 생성
         MatchResult matchResult = new MatchResult();
         matchResult.setMatch(matchCompleted);
         matchResult.setScore(dto.getScore());
@@ -123,10 +128,8 @@ public class MatchServiceImpl implements MatchService {
         matchResult.setResultNote(dto.getResultNote());
         matchResult.setCreatedAt(LocalDateTime.now());
 
-        // 4. 저장
         MatchResult savedResult = matchResultRepository.save(matchResult);
 
-        // 5. 응답 DTO 변환
         return new MatchResultResponseDto(
                 savedResult.getScore(),
                 savedResult.getWinner(),
@@ -160,9 +163,9 @@ public class MatchServiceImpl implements MatchService {
         for (String key : allKeys) {
             long size = matchRedisService.getZSetSize(key);
             String[] keyParts = key.split(":");
-            String sportName = keyParts[1];
-            Sport sport = sportRepository.findByName(sportName)
-                    .orElseThrow(() -> new IllegalArgumentException("Invalid sport name: " + sportName));
+            int sportId = Integer.parseInt(keyParts[1]);
+            Sport sport = sportRepository.findById(sportId)
+                    .orElseThrow(() -> new IllegalArgumentException("Invalid sport name"));
 
             if (size >= sport.getRequiredPersonnel() - 2 && size < sport.getRequiredPersonnel()) {
                 imminentMatches.add(key);
