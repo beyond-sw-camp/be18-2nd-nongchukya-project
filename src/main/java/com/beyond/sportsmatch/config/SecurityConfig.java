@@ -59,6 +59,8 @@ public class SecurityConfig {
                                 "auth/kakao/callback",
                                 "/ws/**"
                         ).permitAll()
+                        // 매칭중인 리스트는 공개
+                        .requestMatchers("api/v1/match-service/imminent-matches", "api/v1/match-service/matching").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/community/**").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
