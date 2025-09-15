@@ -253,7 +253,7 @@ public class MatchServiceImpl implements MatchService {
                             saved.getRegion(),
                             saved.getMatchDate()
                     );
-                    chatService.createRoomForMath(matchPk, roomName, userIdList);
+                    chatService.createRoomForMatch(matchPk, roomName, userIdList);
                 }
             });
 
