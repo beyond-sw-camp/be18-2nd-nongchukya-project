@@ -8,6 +8,6 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Repository
-public interface MatchRepo extends JpaRepository<MatchApplication, Integer> {
+public interface MatchRepository extends JpaRepository<MatchApplication, Integer> {
     List<MatchApplication> findByMatchDate(LocalDate date);
 }

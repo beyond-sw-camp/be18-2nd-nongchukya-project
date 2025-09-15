@@ -251,7 +251,7 @@ public class ChatService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public Integer createRoomForMath(int matchId, String roomName, List<Integer> userIds) {
+    public Integer createRoomForMatch(int matchId, String roomName, List<Integer> userIds) {
         ChatRoom chatRoom = chatRoomRepository.findByMatchId(matchId).orElseGet(()->
                 chatRoomRepository.saveAndFlush(
                         ChatRoom.builder()
