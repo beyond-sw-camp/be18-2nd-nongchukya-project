@@ -1,5 +1,11 @@
 package com.beyond.sportsmatch.domain.chat.model.service;
 
+import com.beyond.sportsmatch.domain.match.model.entity.MatchApplication;
+import com.beyond.sportsmatch.domain.match.model.entity.MatchCompleted;
+import com.beyond.sportsmatch.domain.match.model.repository.MatchCompletedRepository;
+import com.beyond.sportsmatch.domain.match.model.repository.MatchRepository;
+import com.beyond.sportsmatch.domain.match.model.service.MatchRedisService;
+import com.beyond.sportsmatch.domain.notification.model.service.NotificationService;
 import com.beyond.sportsmatch.domain.user.model.repository.UserRepository;
 import com.beyond.sportsmatch.domain.chat.model.dto.ChatDto;
 import com.beyond.sportsmatch.domain.chat.model.dto.ChatRoomListResDto;
@@ -18,9 +24,11 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -34,6 +42,10 @@ public class ChatService {
     private final ChatMessageRepository chatMessageRepository;
     private final ReadStatusRepository readStatusRepository;
     private final UserRepository userRepository;
+    private final MatchRedisService matchRedisService;
+    private final MatchRepository matchRepository;
+    private final MatchCompletedRepository matchCompletedRepository;
+    private final NotificationService notificationService;
 
     public void saveMessage(int chatRoomId, ChatDto message) {
         // 채팅방 조회
@@ -174,6 +186,7 @@ public class ChatService {
         return false;
     }
 
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public int messageRead(int roomId) {
         ChatRoom chatRoom = chatRoomRepository.findById(roomId).orElseThrow(()-> new EntityNotFoundException("Chat Room Not Found"));
         UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext()
@@ -220,8 +233,33 @@ public class ChatService {
         }
         JoinedChatRoom joinUser = chatParticipantRepository.findByChatRoomAndUser(chatRoom, user).orElseThrow(()->
                 new EntityNotFoundException("참여자를 찾을 수 없습니다."));
+        MatchCompleted matchCompleted = matchCompletedRepository.findById(chatRoom.getMatchId()).orElseThrow(()->
+                new EntityNotFoundException("성사된 매칭방이 없습니다."));
+
+
+        List<JoinedChatRoom> joins = chatParticipantRepository.findAllByChatRoom(chatRoom);
+        List<Integer> remainUserIds = joins.stream().map(j -> j.getUser().getUserId()).filter(uid -> !uid.equals(user.getUserId())).toList();
+
+        MatchApplication baseApp = matchRepository.findByApplicantIdAndMatchDate(
+                userRepository.getReferenceById(remainUserIds.get(0)),
+                matchCompleted.getMatchDate()
+        );
         chatParticipantRepository.delete(joinUser);
         chatRoomRepository.delete(chatRoom);
+        matchCompletedRepository.delete(matchCompleted);
+        for (int remainUserId : remainUserIds) {
+            addToMatchList(baseApp, remainUserId);
+        }
+        notificationService.sendMatchCancelled(
+                matchCompleted.getMatchId(),
+                roomId,
+                matchCompleted.getSport().getName(),
+                matchCompleted.getRegion(),
+                matchCompleted.getMatchDate(),
+                baseApp.getStartTime().format(DateTimeFormatter.ofPattern("HH:mm")),
+                baseApp.getEndTime().format(DateTimeFormatter.ofPattern("HH:mm")),
+                remainUserIds
+        );
     }
 
     public int getOrCreatePrivateRoom(String otherNickname) {
@@ -275,5 +313,27 @@ public class ChatService {
             }
         }
         return roomId;
+    }
+
+    private String getMatchKey(MatchApplication dto) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HHmm");
+        String formattedStartTime = dto.getStartTime().format(formatter);
+        String formattedEndTime = dto.getEndTime().format(formatter);
+
+        return String.format("match:%s:%s:%s:%s-%s",
+                dto.getSport().getId(),
+                dto.getRegion(),
+                dto.getMatchDate(),
+                formattedStartTime,
+                formattedEndTime);
+    }
+
+    // key : 매칭조건, value : userId
+    public void addToMatchList(MatchApplication matchApplication,int remainUserId) {
+        String key = getMatchKey(matchApplication);
+        String value = String.valueOf(remainUserId);
+        long ttl = 7 * 24 * 60 * 60 * 1000L;
+        long expireAt = System.currentTimeMillis() + ttl;
+        matchRedisService.addToZSet(key, value, expireAt);
     }
 }
