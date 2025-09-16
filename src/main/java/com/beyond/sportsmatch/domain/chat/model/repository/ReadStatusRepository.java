@@ -19,7 +19,7 @@ public interface ReadStatusRepository extends JpaRepository<MessageReadStatus, I
 
     @Modifying
     @Query(value = """
-        UPDATE IGNORE message_read_status
+        UPDATE message_read_status
         SET is_read = 1
         WHERE chat_room_id = :roomId
           AND user_id = :userId

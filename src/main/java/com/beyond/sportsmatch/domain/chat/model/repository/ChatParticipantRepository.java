@@ -22,4 +22,6 @@ public interface ChatParticipantRepository extends JpaRepository<JoinedChatRoom,
     Optional<ChatRoom> findExistingPrivateRoom(@Param("myId") int myId, @Param("otherUserId") int otherUserId);
 
     boolean existsByChatRoom_ChatRoomIdAndUser_UserId(Integer chatRoomId, Integer userId);
+
+    List<JoinedChatRoom> findAllByChatRoom(ChatRoom chatRoom);
 }

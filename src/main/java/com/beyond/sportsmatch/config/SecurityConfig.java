@@ -57,7 +57,8 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "api/v1/auth/**",
                                 "auth/kakao/callback",
-                                "/ws/**"
+                                "/ws/**",
+                                "/api/v1/sse/**"
                         ).permitAll()
                         // 매칭중인 리스트는 공개
                         .requestMatchers("api/v1/match-service/imminent-matches", "api/v1/match-service/matching").permitAll()

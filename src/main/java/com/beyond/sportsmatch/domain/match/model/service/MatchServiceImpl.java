@@ -12,6 +12,7 @@ import com.beyond.sportsmatch.domain.match.model.entity.MatchApplication;
 import com.beyond.sportsmatch.domain.match.model.entity.MatchCompleted;
 import com.beyond.sportsmatch.domain.match.model.entity.MatchResult;
 import com.beyond.sportsmatch.domain.match.model.repository.MatchResultRepository;
+import com.beyond.sportsmatch.domain.notification.model.service.NotificationService;
 import com.beyond.sportsmatch.domain.user.model.entity.Sport;
 import com.beyond.sportsmatch.domain.match.model.repository.MatchCompletedRepository;
 import com.beyond.sportsmatch.domain.match.model.repository.MatchApplicationRepository;
@@ -46,6 +47,7 @@ public class MatchServiceImpl implements MatchService {
     private final SportRepository sportRepository;
     private final RedisTemplate<String, String> redisTemplate;
     private final ChatService chatService;
+    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -253,7 +255,18 @@ public class MatchServiceImpl implements MatchService {
                             saved.getRegion(),
                             saved.getMatchDate()
                     );
-                    chatService.createRoomForMatch(matchPk, roomName, userIdList);
+                    Integer chatRoomId = chatService.createRoomForMatch(matchPk, roomName, userIdList);
+
+                    notificationService.sendMatchConfirmed(
+                            matchPk,
+                            chatRoomId,
+                            saved.getSport().getName(),
+                            saved.getRegion(),
+                            saved.getMatchDate(),
+                            matchApplication.getStartTime().format(DateTimeFormatter.ofPattern("HH:mm")),
+                            matchApplication.getEndTime().format(DateTimeFormatter.ofPattern("HH:mm")),
+                            userIdList
+                    );
                 }
             });
 
