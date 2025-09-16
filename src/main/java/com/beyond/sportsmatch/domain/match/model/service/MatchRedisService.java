@@ -41,6 +41,10 @@ public class MatchRedisService {
         return redisTemplate.opsForZSet().reverseRange(key, start, end);
     }
 
+    public Double getScore(String key, String value) {
+        return redisTemplate.opsForZSet().score(key, value);
+    }
+
     // key 조회 (SCAN)
     public Set<String> getAllKeys() {
         Set<String> keys = new HashSet<>();

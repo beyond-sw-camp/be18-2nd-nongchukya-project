@@ -100,16 +100,23 @@ public class MatchServiceImpl implements MatchService {
     }
 
     @Override
-    public Page<MatchResponseDto> getMatchesByUser(User user, Pageable pageable) {
+    public List<MatchResponseDto> getMatchesByUser(User user, Pageable pageable) {
         Page<MatchApplication> applicationsPage = matchApplicationRepository.findByApplicantId(user, pageable);
 
-        return applicationsPage.map(application -> {
-            String poolKey = getMatchKey(application);
+        return applicationsPage.stream()
+                .filter(application -> {
+                    String poolKey = getMatchKey(application);
 
-            Long currentCount = matchRedisService.getZSetSize(poolKey);
+                    return matchRedisService.getScore(poolKey, String.valueOf(user.getUserId())) != null;
+                })
+                .map(application -> {
+                    String poolKey = getMatchKey(application);
 
-            return MatchResponseDto.fromEntity(application, currentCount);
-        });
+                    long waitingCount = matchRedisService.getZSetSize(poolKey);
+
+                    return MatchResponseDto.fromEntity(application, waitingCount);
+                })
+                .collect(Collectors.toList());
     }
 
     @Override

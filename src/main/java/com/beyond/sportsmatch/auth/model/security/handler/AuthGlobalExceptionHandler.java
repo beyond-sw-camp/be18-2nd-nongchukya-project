@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 // 지금 예외 처리 하는 세부적인 사항들이 없다해야하나? 무튼 그쪽도 고민한번 해보쇼
-public class GlobalExceptionHandler {
+public class AuthGlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<String> handleException(Exception ex) {

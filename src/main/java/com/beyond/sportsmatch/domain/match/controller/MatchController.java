@@ -102,11 +102,11 @@ public class MatchController {
 
     // 매칭 중인 리스트 조회 (사용자 본인것만)
     @GetMapping("/me/matches")
-    public ResponseEntity<Page<MatchResponseDto>> getMatchingList(@PageableDefault(size = 5, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
+    public ResponseEntity<List<MatchResponseDto>> getMatchingList(@PageableDefault(size = 5, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
                                                                   @AuthenticationPrincipal UserDetailsImpl userDetails) {
         User user = userDetails.getUser();
 
-        Page<MatchResponseDto> matches = matchService.getMatchesByUser(user, pageable);
+        List<MatchResponseDto> matches = matchService.getMatchesByUser(user, pageable);
 
         System.out.println(matches);
 
