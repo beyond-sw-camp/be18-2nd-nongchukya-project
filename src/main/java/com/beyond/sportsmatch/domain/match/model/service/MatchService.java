@@ -10,7 +10,6 @@ import com.beyond.sportsmatch.domain.match.model.dto.MatchResponseDto;
 import com.beyond.sportsmatch.domain.match.model.dto.MatchResultResponseDto;
 import com.beyond.sportsmatch.domain.match.model.entity.MatchApplication;
 import com.beyond.sportsmatch.domain.user.model.entity.User;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
@@ -40,7 +39,7 @@ public interface MatchService {
 
     Set<String> getMatches();
 
-    Page<MatchResponseDto> getMatchesByUser(User user, Pageable pageable);
+    List<MatchResponseDto> getMatchesByUser(User user, Pageable pageable);
 
     MatchResultResponseDto saveMatchResult(int matchId, MatchResultRequestDto dto);
 
