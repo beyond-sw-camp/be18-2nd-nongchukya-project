@@ -1,5 +1,7 @@
 package com.beyond.sportsmatch.domain.chat.model.service;
 
+import com.beyond.sportsmatch.common.exception.ChatException;
+import com.beyond.sportsmatch.common.exception.message.ExceptionMessage;
 import com.beyond.sportsmatch.domain.match.model.entity.MatchApplication;
 import com.beyond.sportsmatch.domain.match.model.entity.MatchCompleted;
 import com.beyond.sportsmatch.domain.match.model.repository.MatchCompletedRepository;
@@ -50,12 +52,12 @@ public class ChatService {
     public void saveMessage(int chatRoomId, ChatDto message) {
         // 채팅방 조회
         ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId).orElseThrow(()->
-                new EntityNotFoundException("Chat Room Not Found"));
+                new ChatException(ExceptionMessage.CHATROOM_NOT_FOUND));
         // 보낸 사람 조회
         User sender = userRepository.findByNickname(message.getSenderNickname()).orElseThrow(()->
-                new EntityNotFoundException("xx"));
+                new ChatException(ExceptionMessage.USER_NOT_FOUND));
         if(sender == null){
-            throw new EntityNotFoundException("User Not Found");
+            throw new ChatException(ExceptionMessage.USER_NOT_FOUND);
         }
         // 메세지 저장
         Message ms = Message.builder()
@@ -78,12 +80,13 @@ public class ChatService {
     }
 
     public void createGroupRoom(String roomName) {
-        UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext()
-                .getAuthentication()
-                .getPrincipal();
-        String nickname = userDetails.getUser().getNickname();
-        User user = userRepository.findByNickname(nickname).orElseThrow(()->
-                new EntityNotFoundException("User Not Found"));
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            throw new ChatException(ExceptionMessage.UNAUTHORIZED);
+        }
+        var userDetails = (UserDetailsImpl) auth.getPrincipal();
+        User user = userRepository.findByNickname(userDetails.getUser().getNickname())
+                .orElseThrow(() -> new ChatException(ExceptionMessage.USER_NOT_FOUND));
         // 채팅방 생성
         ChatRoom chatRoom = ChatRoom.builder()
                 .chatRoomName(roomName)
@@ -112,16 +115,19 @@ public class ChatService {
     }
 
     public void addParticipantToGroupChat(int roodId) {
-        UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext()
-                .getAuthentication()
-                .getPrincipal();
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            throw new ChatException(ExceptionMessage.UNAUTHORIZED);
+        }
+        var userDetails = (UserDetailsImpl) auth.getPrincipal();
+        User user = userRepository.findByNickname(userDetails.getUser().getNickname())
+                .orElseThrow(() -> new ChatException(ExceptionMessage.USER_NOT_FOUND));
         // 채팅방 조회
-        ChatRoom chatRoom = chatRoomRepository.findById(roodId).orElseThrow(()-> new  EntityNotFoundException("Chat Room Not Found"));
+        ChatRoom chatRoom = chatRoomRepository.findById(roodId).orElseThrow(()->
+                new ChatException(ExceptionMessage.CHATROOM_NOT_FOUND));
         // 유저 조회
-        User user = userRepository.findByNickname(userDetails.getUser().getNickname()).orElseThrow(()->
-                new EntityNotFoundException("User Not Found"));
         if(chatRoom.getIsGroupChat().equals("N")){
-            throw new IllegalArgumentException("그룹채팅이 아닙니다.");
+            throw new ChatException(ExceptionMessage.CHATROOM_NOT_GROUP);
         }
         // 이미 참여자인지 검증
         Optional<JoinedChatRoom> participant = chatParticipantRepository.findByChatRoomAndUser(chatRoom, user);
@@ -142,12 +148,14 @@ public class ChatService {
 
     public List<ChatDto> getChatHistory(int roomId) {
         // 내가 해당 채팅방의 참여자가 아닐 경우 에러 발생
-        ChatRoom chatRoom = chatRoomRepository.findById(roomId).orElseThrow(()-> new EntityNotFoundException("Chat Room Not Found"));
-        UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext()
-                .getAuthentication()
-                .getPrincipal();
-        User user = userRepository.findByNickname(userDetails.getUser().getNickname()).orElseThrow(()->
-                new EntityNotFoundException("User Not Found"));
+        ChatRoom chatRoom = chatRoomRepository.findById(roomId).orElseThrow(()-> new ChatException(ExceptionMessage.CHATROOM_NOT_FOUND));
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            throw new ChatException(ExceptionMessage.UNAUTHORIZED);
+        }
+        var userDetails = (UserDetailsImpl) auth.getPrincipal();
+        User user = userRepository.findByNickname(userDetails.getUser().getNickname())
+                .orElseThrow(() -> new ChatException(ExceptionMessage.USER_NOT_FOUND));
         List<JoinedChatRoom> chatParticipants = chatParticipantRepository.findByChatRoom(chatRoom);
         boolean check = false;
         for (JoinedChatRoom c : chatParticipants){
@@ -156,7 +164,7 @@ public class ChatService {
             }
         }
         if(!check){
-            throw new IllegalStateException("본인이 속하지 않은 채팅방입니다.");
+            throw new ChatException(ExceptionMessage.NOT_CHAT_MEMBER);
         }
         // 특정 룸에 대한 message 조회
         List<Message> chatMessages = chatMessageRepository.findByChatRoomOrderByCreatedAtAsc(chatRoom);
@@ -172,10 +180,10 @@ public class ChatService {
     }
 
     public boolean isRoomParticipant(String nickname, int roomId) {
-        ChatRoom chatRoom = chatRoomRepository.findById(roomId).orElseThrow(()-> new EntityNotFoundException("Chat Room Not Found"));
+        ChatRoom chatRoom = chatRoomRepository.findById(roomId).orElseThrow(()-> new ChatException(ExceptionMessage.CHATROOM_NOT_FOUND));
 
         User user = userRepository.findByNickname(nickname).orElseThrow(()->
-                new EntityNotFoundException("User Not Found"));
+                new ChatException(ExceptionMessage.USER_NOT_FOUND));
 
         List<JoinedChatRoom> chatParticipants = chatParticipantRepository.findByChatRoom(chatRoom);
         for (JoinedChatRoom c : chatParticipants){
@@ -188,12 +196,14 @@ public class ChatService {
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public int messageRead(int roomId) {
-        ChatRoom chatRoom = chatRoomRepository.findById(roomId).orElseThrow(()-> new EntityNotFoundException("Chat Room Not Found"));
-        UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext()
-                .getAuthentication()
-                .getPrincipal();
+        ChatRoom chatRoom = chatRoomRepository.findById(roomId).orElseThrow(()-> new ChatException(ExceptionMessage.CHATROOM_NOT_FOUND));
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            throw new ChatException(ExceptionMessage.UNAUTHORIZED);
+        }
+        var userDetails = (UserDetailsImpl) auth.getPrincipal();
         User user = userRepository.findByNickname(userDetails.getUser().getNickname()).orElseThrow(()->
-                new EntityNotFoundException("User Not Found"));;
+                new ChatException(ExceptionMessage.USER_NOT_FOUND));;
         int userId = user.getUserId();
         int updated = readStatusRepository.markAsReadIgnore(roomId, userId);
         // updated < 예상치 면 일부 행은 충돌로 스킵된 것. 다음 호출에서 다시 갱신될 수 있음.
@@ -201,11 +211,13 @@ public class ChatService {
     }
 
     public List<MyChatListResDto> getMyChatRooms() {
-        UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext()
-                .getAuthentication()
-                .getPrincipal();
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            throw new ChatException(ExceptionMessage.UNAUTHORIZED);
+        }
+        var userDetails = (UserDetailsImpl) auth.getPrincipal();
         User user = userRepository.findByNickname(userDetails.getUser().getNickname()).orElseThrow(()->
-                new EntityNotFoundException("User Not Found"));;
+                new ChatException(ExceptionMessage.USER_NOT_FOUND));;
         List<JoinedChatRoom> chatParticipants = chatParticipantRepository.findAllByUser(user);
         List<MyChatListResDto> dtos = new ArrayList<>();
         for (JoinedChatRoom c : chatParticipants){
@@ -222,19 +234,21 @@ public class ChatService {
     }
 
     public void leaveGroupChatRoom(int roomId) {
-        ChatRoom chatRoom = chatRoomRepository.findById(roomId).orElseThrow(()-> new EntityNotFoundException("Chat Room Not Found"));
-        UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext()
-                .getAuthentication()
-                .getPrincipal();
+        ChatRoom chatRoom = chatRoomRepository.findById(roomId).orElseThrow(()-> new ChatException(ExceptionMessage.CHATROOM_NOT_FOUND));
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            throw new ChatException(ExceptionMessage.UNAUTHORIZED);
+        }
+        var userDetails = (UserDetailsImpl) auth.getPrincipal();
         User user = userRepository.findByNickname(userDetails.getUser().getNickname()).orElseThrow(()->
-                new EntityNotFoundException("User Not Found"));
+                new ChatException(ExceptionMessage.USER_NOT_FOUND));;
         if(chatRoom.getIsGroupChat().equals("N")){
-            throw new IllegalArgumentException("단체 채팅방이 아닙니다.");
+            throw new ChatException(ExceptionMessage.CHATROOM_NOT_GROUP);
         }
         JoinedChatRoom joinUser = chatParticipantRepository.findByChatRoomAndUser(chatRoom, user).orElseThrow(()->
-                new EntityNotFoundException("참여자를 찾을 수 없습니다."));
+                new ChatException(ExceptionMessage.USER_NOT_FOUND));
         MatchCompleted matchCompleted = matchCompletedRepository.findById(chatRoom.getMatchId()).orElseThrow(()->
-                new EntityNotFoundException("성사된 매칭방이 없습니다."));
+                new ChatException(ExceptionMessage.COMPLETED_MATCH_NOT_FOUND));
 
 
         List<JoinedChatRoom> joins = chatParticipantRepository.findAllByChatRoom(chatRoom);
@@ -263,13 +277,14 @@ public class ChatService {
     }
 
     public int getOrCreatePrivateRoom(String otherNickname) {
-        UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext()
-                .getAuthentication()
-                .getPrincipal();
-        User user = userRepository.findByNickname(userDetails.getUser().getNickname()).orElseThrow(()->
-                new EntityNotFoundException("User Not Found"));
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            throw new ChatException(ExceptionMessage.UNAUTHORIZED);
+        }
+        var userDetails = (UserDetailsImpl) auth.getPrincipal();
+        User user = userDetails.getUser();
         User otherUser = userRepository.findByNickname(otherNickname).orElseThrow(()->
-                new EntityNotFoundException("회원을 찾을 수 없습니다."));
+                new ChatException(ExceptionMessage.USER_NOT_FOUND));
         // 나와 상대방이 1:1채팅에 이미 참석하고 있다면 해당 roomId return
         Optional<ChatRoom> chatRoom = chatParticipantRepository.findExistingPrivateRoom(user.getUserId(), otherUser.getUserId());
         if(chatRoom.isPresent()){

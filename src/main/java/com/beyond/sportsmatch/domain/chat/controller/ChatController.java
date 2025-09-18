@@ -1,5 +1,6 @@
 package com.beyond.sportsmatch.domain.chat.controller;
 
+import com.beyond.sportsmatch.common.dto.BaseResponseDto;
 import com.beyond.sportsmatch.domain.chat.model.dto.ChatDto;
 import com.beyond.sportsmatch.domain.chat.model.dto.ChatRoomListResDto;
 import com.beyond.sportsmatch.domain.chat.model.dto.MyChatListResDto;
@@ -24,59 +25,59 @@ public class ChatController {
     private final ChatService chatService;
 
     @PostMapping("/group/create")
-    public ResponseEntity<?> createGroupRoom(@RequestParam String roomName) {
+    public ResponseEntity<BaseResponseDto<String>> createGroupRoom(@RequestParam String roomName) {
         chatService.createGroupRoom(roomName);
 
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(new BaseResponseDto<>(HttpStatus.OK, "채팅방 생성에 성공하였습니다."));
     }
 
     // 개인 채팅방 개설 또는 기존 roomId return
     @PostMapping("/private/create")
-    public ResponseEntity<?> createOrGetPrivateRoom(@RequestParam String otherNickname) {
+    public ResponseEntity<BaseResponseDto<Integer>> createOrGetPrivateRoom(@RequestParam String otherNickname) {
         int roomId = chatService.getOrCreatePrivateRoom(otherNickname);
-        return new ResponseEntity<>(roomId, HttpStatus.OK);
+        return ResponseEntity.ok(new BaseResponseDto<>(HttpStatus.OK, roomId));
     }
 
     // 매칭방리스트조회
     @GetMapping
-    public ResponseEntity<?> getAllRooms() {
+    public ResponseEntity<BaseResponseDto<ChatRoomListResDto>> getAllRooms() {
         List<ChatRoomListResDto> chatRoomListResDtos = chatService.getGroupChatRooms();
-        return new ResponseEntity<>(chatRoomListResDtos, HttpStatus.OK);
+        return ResponseEntity.ok(new BaseResponseDto<>(HttpStatus.OK, chatRoomListResDtos));
     }
 
     // 그룹채팅방참여
     @PostMapping("/group/{roomId}")
-    public ResponseEntity<?> joinGroupChatRoom(@PathVariable int roomId) {
+    public ResponseEntity<BaseResponseDto<String>> joinGroupChatRoom(@PathVariable int roomId) {
         chatService.addParticipantToGroupChat(roomId);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(new BaseResponseDto<>(HttpStatus.OK, "채팅 참여에 성공하였습니다."));
     }
 
     // 채팅방 들어갈때 db에 쌓여있는 메세지들 불러오기
     @GetMapping("/history/{roomId}")
-    public ResponseEntity<?> getChatHistory(@PathVariable int roomId) {
+    public ResponseEntity<BaseResponseDto<ChatDto>> getChatHistory(@PathVariable int roomId) {
         List<ChatDto> chatDtos = chatService.getChatHistory(roomId);
-        return new ResponseEntity<>(chatDtos, HttpStatus.OK);
+        return ResponseEntity.ok(new BaseResponseDto<>(HttpStatus.OK, chatDtos));
     }
 
     // 채팅메시지 읽음처리
     @PostMapping("/{roomId}/read")
-    public ResponseEntity<?> messageRead(@PathVariable int roomId) {
+    public ResponseEntity<BaseResponseDto<String>> messageRead(@PathVariable int roomId) {
         chatService.messageRead(roomId);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(new BaseResponseDto<>(HttpStatus.OK, "읽음 처리에 성공하였습니다."));
     }
 
     // 내 채팅방 목록 조회 : roomId, roomName, 그룹채팅여부, 메시지 읽음 개수
     @GetMapping("/my/rooms")
-    public ResponseEntity<?> getMyRooms() {
+    public ResponseEntity<BaseResponseDto<MyChatListResDto>> getMyRooms() {
         List<MyChatListResDto> myChatListResDtos = chatService.getMyChatRooms();
-        return new ResponseEntity<>(myChatListResDtos, HttpStatus.OK);
+        return ResponseEntity.ok(new BaseResponseDto<>(HttpStatus.OK, myChatListResDtos));
     }
 
     // 채팅방 나가기
     @DeleteMapping("/group/{roomId}/leave")
-    public ResponseEntity<?> leaveGroup(@PathVariable int roomId) {
+    public ResponseEntity<BaseResponseDto<String>> leaveGroup(@PathVariable int roomId) {
         chatService.leaveGroupChatRoom(roomId);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(new BaseResponseDto<>(HttpStatus.OK, "나가기에 성공하였습니다."));
     }
 
 

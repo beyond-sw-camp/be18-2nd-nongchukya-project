@@ -1,5 +1,8 @@
 package com.beyond.sportsmatch.domain.notification.model.service;
 
+import com.beyond.sportsmatch.auth.model.service.UserDetailsImpl;
+import com.beyond.sportsmatch.common.exception.ChatException;
+import com.beyond.sportsmatch.common.exception.message.ExceptionMessage;
 import com.beyond.sportsmatch.domain.notification.model.entity.Notification;
 import com.beyond.sportsmatch.domain.notification.model.repository.NotificationRepository;
 import com.beyond.sportsmatch.domain.user.model.repository.UserRepository;
@@ -23,6 +26,46 @@ public class NotificationService {
     private final NotificationRepository notificationRepository;
     private final NotificationSseService notificationSseService;
     private final UserRepository userRepository;
+
+    public List<Notification> getNotifications(UserDetailsImpl userDetails) {
+        if(userDetails == null) {
+            throw new ChatException(ExceptionMessage.UNAUTHORIZED);
+        }
+        int userId = userDetails.getUser().getUserId();
+        return notificationRepository.findByUserIdOrderByCreatedAtDesc(userId);
+    }
+
+    public int getUnreadCount(UserDetailsImpl userDetails) {
+        if(userDetails == null){
+            throw new ChatException(ExceptionMessage.UNAUTHORIZED);
+        }
+        int userId = userDetails.getUser().getUserId();
+
+        return notificationRepository.countByUserIdAndReadAtIsNull(userId);
+    }
+
+    public int readAll(UserDetailsImpl userDetails) {
+        if(userDetails == null){
+            throw new ChatException(ExceptionMessage.UNAUTHORIZED);
+        }
+        int userId = userDetails.getUser().getUserId();
+        return notificationRepository.markAllReadByUserId(userId, LocalDateTime.now());
+    }
+
+    public void deleteNotification(int notificationId, UserDetailsImpl userDetails) {
+        if(userDetails == null){
+            throw new ChatException(ExceptionMessage.UNAUTHORIZED);
+        }
+        int userId = userDetails.getUser().getUserId();
+        Notification notification = notificationRepository.findById(notificationId).orElseThrow(() ->
+                new ChatException(ExceptionMessage.NOTIFICATION_NOT_FOUND));
+
+        if(userId!=notification.getUserId()){
+            throw new ChatException(ExceptionMessage.FORBIDDEN_NOTIFICATION_DELETE);
+
+        }
+        notificationRepository.delete(notification);
+    }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void sendMatchConfirmed(Integer matchId, Integer chatRoomId,
@@ -53,7 +96,7 @@ public class NotificationService {
                 rows.stream().collect(Collectors.toMap(Notification::getUserId, Notification::getNotificationId, (a, b)->b));
         for(Integer userId : userIds){
             String loginId = userRepository.findLoginIdByUserId(userId).orElseThrow(()->
-                    new EntityNotFoundException("로그인 아이디가 없습니다."));
+                    new ChatException(ExceptionMessage.LOGINID_NOT_FOUND));
             if(loginId == null){
                 continue;
             }
@@ -98,7 +141,7 @@ public class NotificationService {
                 saved.stream().collect(Collectors.toMap(Notification::getUserId, Notification::getNotificationId, (a, b)->b));
         for(Integer remainUserId: remainUserIds){
             String loginId = userRepository.findLoginIdByUserId(remainUserId).orElseThrow(()->
-                    new EntityNotFoundException("로그인 아이디가 없습니다."));
+                    new ChatException(ExceptionMessage.LOGINID_NOT_FOUND));
             if(loginId == null){
                 continue;
             }
@@ -113,4 +156,7 @@ public class NotificationService {
             notificationSseService.send(loginId, "match-cancelled", payload);
         }
     }
+
+
+
 }
