@@ -21,4 +21,6 @@ public interface MatchApplicationRepository extends JpaRepository<MatchApplicati
     int countByApplicantId(User applicantId);
 
     List<MatchApplication> findByMatchDateBefore(LocalDate now);
+
+    boolean existsByApplicantIdAndMatchDate(User applicant, LocalDate matchDate);
 }

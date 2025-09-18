@@ -1,6 +1,8 @@
 package com.beyond.sportsmatch.domain.match.model.service;
 
 
+import com.beyond.sportsmatch.common.exception.SportsMatchException;
+import com.beyond.sportsmatch.common.exception.message.ExceptionMessage;
 import com.beyond.sportsmatch.domain.chat.model.service.ChatService;
 import com.beyond.sportsmatch.domain.match.model.dto.CompletedMatchResponseDto;
 import com.beyond.sportsmatch.domain.match.model.dto.MatchApplicationResponseDto;
@@ -52,8 +54,18 @@ public class MatchServiceImpl implements MatchService {
     @Override
     @Transactional
     public void saveMatch(MatchApplicationRequestDto requestDto, User applicant) {
+        if (requestDto.getMatchDate().isBefore(LocalDate.now())) {
+            throw new SportsMatchException(ExceptionMessage.INVALID_MATCH_DATE);
+        }
+        if (matchApplicationRepository.existsByApplicantIdAndMatchDate(applicant, requestDto.getMatchDate())) {
+            throw new SportsMatchException(ExceptionMessage.DUPLICATE_MATCH_APPLICATION);
+        }
+        if (!requestDto.getStartTime().isBefore(requestDto.getEndTime())) {
+            throw new SportsMatchException(ExceptionMessage.INVALID_MATCH_TIME);
+        }
+
         Sport sport = sportRepository.findByName(requestDto.getSport())
-                .orElseThrow(() -> new IllegalArgumentException("Invalid sport name: " + requestDto.getSport()));
+                .orElseThrow(() -> new SportsMatchException(ExceptionMessage.SPORT_NOT_FOUND));
 
         MatchApplication matchApplication = new MatchApplication();
         matchApplication.setMatchApplication(requestDto, applicant, sport);
@@ -72,7 +84,7 @@ public class MatchServiceImpl implements MatchService {
     @Transactional
     public void deleteMatch(int applicationId) {
         MatchApplication matchApplication = matchApplicationRepository.findById(applicationId)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid application ID: " + applicationId));
+                .orElseThrow(() -> new SportsMatchException(ExceptionMessage.MATCH_APPLICATION_NOT_FOUND));
 
         String key = getMatchKey(matchApplication);
         String value = String.valueOf(matchApplication.getApplicantId().getUserId());
@@ -124,10 +136,10 @@ public class MatchServiceImpl implements MatchService {
     @Override
     public MatchResultResponseDto saveMatchResult(int matchId, MatchResultRequestDto dto) {
         MatchCompleted matchCompleted = matchCompletedRepository.findById(matchId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 ID의 경기를 찾을 수 없습니다. matchId=" + matchId));
+                .orElseThrow(() -> new SportsMatchException(ExceptionMessage.MATCH_NOT_FOUND));
 
         if (matchResultRepository.existsByMatch(matchCompleted)) {
-            throw new IllegalStateException("이미 결과가 등록된 경기입니다.");
+            throw new SportsMatchException(ExceptionMessage.MATCH_RESULT_ALREADY_EXISTS);
         }
 
         MatchResult matchResult = new MatchResult();
@@ -148,7 +160,7 @@ public class MatchServiceImpl implements MatchService {
 
     @Override
     public List<MatchResultResponseDto> getMatchResults(User user) {
-        List<MatchResult> matchResults = matchResultRepository.findAll();
+        List<MatchResult> matchResults = matchResultRepository.findMatchResultsByUser(user);
 
         return matchResults.stream()
                 .map(MatchResultResponseDto::fromEntity)
@@ -174,7 +186,7 @@ public class MatchServiceImpl implements MatchService {
             String[] keyParts = key.split(":");
             int sportId = Integer.parseInt(keyParts[1]);
             Sport sport = sportRepository.findById(sportId)
-                    .orElseThrow(() -> new IllegalArgumentException("Invalid sport name"));
+                    .orElseThrow(() -> new SportsMatchException(ExceptionMessage.SPORT_NOT_FOUND));
 
             if (size >= sport.getRequiredPersonnel() - 2 && size < sport.getRequiredPersonnel()) {
                 imminentMatches.add(key);

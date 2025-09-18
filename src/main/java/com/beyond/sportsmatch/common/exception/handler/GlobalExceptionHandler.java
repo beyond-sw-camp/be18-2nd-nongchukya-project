@@ -5,6 +5,7 @@ import com.beyond.sportsmatch.common.exception.dto.ApiErrorResponseDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -16,6 +17,7 @@ import java.util.Map;
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+    // CUSTOM
     @ExceptionHandler(SportsMatchException.class)
     public ResponseEntity<Object> handleException(SportsMatchException e) {
         Map<String,Object> map = new HashMap<>();
@@ -77,5 +79,18 @@ public class GlobalExceptionHandler {
         );
 
         return new ResponseEntity<>(map, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ApiErrorResponseDto> handleAccessDeniedException(AccessDeniedException e) {
+        log.error("AccessDeniedException: {}", e.getMessage());
+
+        ApiErrorResponseDto apiErrorResponseDto = new ApiErrorResponseDto(
+                HttpStatus.FORBIDDEN.value(),
+                HttpStatus.FORBIDDEN.name(),
+                e.getMessage()
+        );
+
+        return new ResponseEntity<>(apiErrorResponseDto, HttpStatus.FORBIDDEN);
     }
 }
