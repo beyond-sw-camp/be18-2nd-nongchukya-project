@@ -235,11 +235,11 @@ public class MatchServiceImpl implements MatchService {
             completed.setRegion(matchApplication.getRegion());
             completed.setMatchDate(matchApplication.getMatchDate());
             String matchTime = matchApplication.getStartTime().format(DateTimeFormatter.ofPattern("HH:mm")) +
-                        " - " + matchApplication.getEndTime().format(DateTimeFormatter.ofPattern("HH:mm"));
+                    " - " + matchApplication.getEndTime().format(DateTimeFormatter.ofPattern("HH:mm"));
             completed.setMatchTime(matchTime);
             completed.setGenderOption(matchApplication.getGenderOption());
             completed.setCreatedAt(LocalDateTime.now());
-            
+
             Set<User> participants = new HashSet<>();
             for (String memberId : memberIds) {
                 User user = new User();

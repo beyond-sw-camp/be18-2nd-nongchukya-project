@@ -1,6 +1,8 @@
 package com.beyond.sportsmatch.domain.community.comment.controller;
 
 import com.beyond.sportsmatch.common.dto.BaseResponseDto;
+import com.beyond.sportsmatch.common.exception.CommunityException;
+import com.beyond.sportsmatch.common.exception.message.ExceptionMessage;
 import com.beyond.sportsmatch.domain.community.comment.model.dto.CommentRequestDto;
 import com.beyond.sportsmatch.domain.community.comment.model.dto.CommentResponseDto;
 import com.beyond.sportsmatch.domain.community.comment.model.service.CommentService;
@@ -56,7 +58,7 @@ public class CommentController {
 
         User user = userDetails.getUser();
         Post post = postService.getPostById(postId)
-                .orElseThrow(() -> new RuntimeException("게시글을 찾을 수 없습니다."));
+                .orElseThrow(() -> new CommunityException(ExceptionMessage.POST_NOT_FOUND));
 
         Comment comment = commentService.save(user, post, null, commentRequestDto.getContent());
 
@@ -72,13 +74,9 @@ public class CommentController {
 
         User user = userDetails.getUser();
         Post post = postService.getPostById(postId)
-                .orElseThrow(() -> new RuntimeException("게시글을 찾을 수 없습니다."));
+                .orElseThrow(() -> new CommunityException(ExceptionMessage.POST_NOT_FOUND));
 
         Comment parentComment = commentService.getCommentById(commentId);
-
-        if (parentComment == null) {
-            throw new RuntimeException("부모 댓글이 존재하지 않습니다.");
-        }
 
         Comment reply = commentService.save(user, post, parentComment, commentRequestDto.getContent());
 

@@ -1,5 +1,7 @@
 package com.beyond.sportsmatch.domain.community.post.model.service;
 
+import com.beyond.sportsmatch.common.exception.CommunityException;
+import com.beyond.sportsmatch.common.exception.message.ExceptionMessage;
 import com.beyond.sportsmatch.domain.community.post.model.repository.PostLikeRepository;
 import com.beyond.sportsmatch.domain.community.post.model.repository.PostRepository;
 import com.beyond.sportsmatch.domain.community.post.model.entity.Post;
@@ -18,7 +20,7 @@ public class PostLikeServiceImpl implements PostLikeService {
     @Override
     public boolean postLike(int postId, User user) {
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new RuntimeException("게시글이 없습니다."));
+                .orElseThrow(() -> new CommunityException(ExceptionMessage.POST_NOT_FOUND));
 
         PostLikeId postLikeId = new PostLikeId(user.getUserId(), postId);
 
