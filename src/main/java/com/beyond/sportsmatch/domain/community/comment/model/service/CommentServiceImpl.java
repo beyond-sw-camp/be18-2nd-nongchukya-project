@@ -91,12 +91,15 @@ public class CommentServiceImpl implements CommentService {
                 .map(this::convertToDtoWithReplies)
                 .toList();
 
+        boolean isAuthor = (comment.getUser().getUserId()) == (comment.getPost().getUser().getUserId());
+
         return new CommentResponseDto(
                 comment.getCommentId(),
                 comment.getUser().getNickname(),
                 comment.getContent(),
                 comment.getCreatedAt(),
-                replies
+                replies,
+                isAuthor
         );
     }
 }
