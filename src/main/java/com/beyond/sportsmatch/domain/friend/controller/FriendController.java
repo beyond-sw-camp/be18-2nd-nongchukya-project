@@ -2,6 +2,8 @@ package com.beyond.sportsmatch.domain.friend.controller;
 
 
 import com.beyond.sportsmatch.auth.model.service.UserDetailsImpl;
+import com.beyond.sportsmatch.common.exception.SportsMatchException;
+import com.beyond.sportsmatch.common.exception.message.ExceptionMessage;
 import com.beyond.sportsmatch.domain.friend.model.dto.FriendResponseDto;
 import com.beyond.sportsmatch.domain.friend.model.service.FriendRequestService;
 import com.beyond.sportsmatch.domain.friend.model.service.FriendService;
@@ -29,11 +31,15 @@ public class FriendController {
 
     @GetMapping("/list") // 친구 리스트 확인 메소드
     public ResponseEntity<List<FriendResponseDto>> getFriends(@AuthenticationPrincipal UserDetailsImpl loginUser) {
+        if(loginUser == null){
+            throw new SportsMatchException(ExceptionMessage.FRIEND_LIST_NOT_FOUND);
+        }
 
         int loginUserId = loginUser.getUser().getUserId();
         List<FriendResponseDto> friends = friendService.getFriends(loginUserId);
 
         if (friends.isEmpty()) {
+
             return ResponseEntity.noContent().build();
         }
 

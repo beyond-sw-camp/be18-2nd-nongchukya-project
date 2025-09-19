@@ -41,4 +41,6 @@ public interface FriendRequestRepository extends JpaRepository<FriendRequest, In
     @Modifying
     @Transactional
     boolean existsBySenderUserIdAndReceiverUserIdAndStatus(User sender, User receiver, String Pending);
+
+    boolean existsBySenderUserIdAndReceiverUserId(int senderUserId, int receiverUserId);
 }

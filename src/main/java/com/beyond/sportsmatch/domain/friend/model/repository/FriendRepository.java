@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface FriendRepository extends JpaRepository<Friend,Integer> {
@@ -22,4 +23,8 @@ public interface FriendRepository extends JpaRepository<Friend,Integer> {
     @Modifying
     @Transactional
     void deleteByLoginUserIdUserIdAndFriendUserIdUserId(int loginUserId, int friendUserId);
+
+    Optional<Friend> findByLoginUserIdUserIdAndFriendUserIdUserId(int loginUserId, int friendUserId);
+
+    boolean existsByLoginUserIdUserIdAndFriendUserIdUserId(int senderUserId, int receiverUserId);
 }

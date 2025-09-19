@@ -32,9 +32,9 @@ public enum ExceptionMessage {
     SEARCH_KEYWORD_BLANK("검색어를 입력해 주세요.", HttpStatus.BAD_REQUEST),
     // friend
     FRIEND_LIST_NOT_FOUND("친구 목록을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    REQUEST_LIST_NOT_FOUND("요청 목록을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
     REQUEST_NOT_FOUND("해당 요청은 존재하지 않습니다.", HttpStatus.NOT_FOUND),
     ALREADY_SENT_REQUEST("이미 해당 유저에게 요청을 보냈습니다.", HttpStatus.CONFLICT),
-    ALREADY_DELETE_REQUEST("이미 거절한 요청입니다.", HttpStatus.CONFLICT),
     ALREADY_FRIEND("해당 유저와 이미 친구입니다.", HttpStatus.CONFLICT),
     ALREADY_DELETE_FRIEND("이미 삭제된 친구입니다.", HttpStatus.NOT_FOUND),
     // match
