@@ -53,7 +53,7 @@ public class Post {
     private String content;
 
     @Column(name = "view_count", nullable = false)
-    private int viewCount = 1; // Post 생성 시 default = 1
+    private int viewCount = 0; // Post 생성 시 default = 0
 
     @Builder.Default
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)

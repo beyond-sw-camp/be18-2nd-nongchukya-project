@@ -1,11 +1,14 @@
 package com.beyond.sportsmatch.domain.community.post.model.service;
 
+import com.beyond.sportsmatch.common.exception.CommunityException;
+import com.beyond.sportsmatch.common.exception.message.ExceptionMessage;
 import com.beyond.sportsmatch.domain.community.comment.model.dto.CommentResponseDto;
 import com.beyond.sportsmatch.domain.community.comment.model.service.CommentService;
 import com.beyond.sportsmatch.domain.community.post.model.dto.AttachmentResponseDto;
 import com.beyond.sportsmatch.domain.community.post.model.dto.PostRequestDto;
 import com.beyond.sportsmatch.domain.community.post.model.dto.PostResponseDto;
 import com.beyond.sportsmatch.domain.community.post.model.dto.PostsResponseDto;
+import com.beyond.sportsmatch.domain.community.post.model.dto.SearchPostsResponseDto;
 import com.beyond.sportsmatch.domain.community.post.model.dto.UpdatePostRequestDto;
 import com.beyond.sportsmatch.domain.community.post.model.repository.CategoryRepository;
 import com.beyond.sportsmatch.domain.community.post.model.repository.PostLikeRepository;
@@ -15,6 +18,7 @@ import com.beyond.sportsmatch.domain.community.post.model.entity.Category;
 import com.beyond.sportsmatch.domain.community.post.model.entity.Post;
 import com.beyond.sportsmatch.domain.user.model.entity.User;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -26,6 +30,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -45,10 +50,42 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public List<PostsResponseDto> getPosts(int page, int numOfRows) {
-        Pageable pageable = PageRequest.of(page - 1, numOfRows, Sort.by("createdAt").descending());
+    public List<PostsResponseDto> getPosts(int page, int numOfRows, String sortBy, String sortDir) {
+        Sort.Direction direction = sortDir.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+        Pageable pageable;
+        Page<PostsResponseDto> postPage;
 
-        return postRepository.findPostsWithCommentAndLikeCount(pageable).getContent();
+        switch (sortBy) {
+            case "latest":
+                pageable = PageRequest.of(page - 1, numOfRows, Sort.by(Sort.Direction.DESC, "createdAt"));
+                postPage = postRepository.findPostsWithCommentAndLikeCount(pageable);
+                break;
+
+            case "oldest":
+                pageable = PageRequest.of(page - 1, numOfRows, Sort.by(Sort.Direction.ASC, "createdAt"));
+                postPage = postRepository.findPostsWithCommentAndLikeCount(pageable);
+                break;
+
+            case "views":
+                pageable = PageRequest.of(page - 1, numOfRows, Sort.by(direction, "viewCount"));
+                postPage = postRepository.findPostsWithCommentAndLikeCount(pageable);
+                break;
+
+            case "likes":
+                // 좋아요 순 정렬은 컬렉션 COUNT 기반 쿼리에서 direction 적용
+                if (direction == Sort.Direction.DESC) {
+                    postPage = postRepository.findPostsOrderByLikesDesc(PageRequest.of(page - 1, numOfRows));
+                } else {
+                    postPage = postRepository.findPostsOrderByLikesAsc(PageRequest.of(page - 1, numOfRows));
+                }
+                break;
+
+            default:
+                pageable = PageRequest.of(page - 1, numOfRows, Sort.by(direction, "createdAt"));
+                postPage = postRepository.findPostsWithCommentAndLikeCount(pageable);
+        }
+
+        return postPage.getContent();
     }
 
     @Override
@@ -61,9 +98,11 @@ public class PostServiceImpl implements PostService {
     @Override
     public PostResponseDto getPost(int postId, User user) {
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new RuntimeException("Post not found"));
+                .orElseThrow(() -> new CommunityException(ExceptionMessage.POST_NOT_FOUND));
 
-        List<CommentResponseDto> comments = commentService.getCommentsByPostId(postId);
+        List<CommentResponseDto> comments = Optional.ofNullable(commentService.getCommentsByPostId(postId))
+                .orElse(Collections.emptyList());
+
         List<AttachmentResponseDto> attachments = post.getAttachments().stream()
                 .map((Attachment attachment) -> new AttachmentResponseDto(
                         attachment.getAttachmentId(),
@@ -73,6 +112,7 @@ public class PostServiceImpl implements PostService {
 
         int likeCount = postLikeRepository.countByPost_PostId(postId);
         boolean liked = postLikeRepository.existsByUser_UserIdAndPost_PostId((user.getUserId()), postId);
+        postRepository.incrementViewCount(postId);
 
         return new PostResponseDto(
                 post.getTitle(),
@@ -80,7 +120,7 @@ public class PostServiceImpl implements PostService {
                 post.getUser().getNickname(),
                 post.getUpdatedAt(),
                 post.getUpdatedAt().isAfter(post.getCreatedAt()),
-                post.getViewCount(),
+                post.getViewCount() + 1,
                 post.getContent(),
                 comments,
                 attachments,
@@ -101,6 +141,10 @@ public class PostServiceImpl implements PostService {
         if(files != null) {
             for(MultipartFile file : files) {
                     String originalName = file.getOriginalFilename();
+                    if (originalName == null || originalName.isBlank()) { // 3️⃣ 파일 이름 null 체크
+                        throw new CommunityException(ExceptionMessage.ATTACHMENT_INVALID_NAME);
+                    }
+
                     String savedName = UUID.randomUUID() + "_" + originalName;
                     String fileUrl = "/uploads/" + savedName;
 
@@ -109,7 +153,7 @@ public class PostServiceImpl implements PostService {
                         Files.createDirectories(uploadPath.getParent());
                         file.transferTo(uploadPath);
                     } catch (Exception e) {
-                        throw new RuntimeException("파일 저장 실패", e);
+                        throw new CommunityException(ExceptionMessage.ATTACHMENT_SAVE_FAILED);
                     }
 
                 Attachment attachment = null;
@@ -124,7 +168,7 @@ public class PostServiceImpl implements PostService {
                             .fileData(file.getBytes())
                             .build();
                 } catch (IOException e) {
-                    throw new RuntimeException(e);
+                    throw new CommunityException(ExceptionMessage.ATTACHMENT_SAVE_FAILED);
                 }
 
                 post.getAttachments().add(attachment);
@@ -145,14 +189,18 @@ public class PostServiceImpl implements PostService {
     @Override
     public PostResponseDto updatePost(UpdatePostRequestDto postRequestDto, List<MultipartFile> files, User user, int postId) {
         Post post = postRepository.findByIdWithUserAndComments(postId)
-                .orElseThrow(() -> new RuntimeException("게시글이 없습니다."));
+                .orElseThrow(() -> new CommunityException(ExceptionMessage.POST_NOT_FOUND));
 
         if (post.getUser().getUserId()!=(user.getUserId())) {
-            throw new RuntimeException("작성자만 수정할 수 있습니다.");
+            throw new CommunityException(ExceptionMessage.NOT_POST_CREATOR);
+        }
+
+        if (postRequestDto.getTitle() == null || postRequestDto.getTitle().trim().isEmpty()) {
+            throw new CommunityException(ExceptionMessage.POST_TITLE_BLANK);
         }
 
         Category category = categoryRepository.findById(postRequestDto.getCategoryId())
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 카테고리입니다."));
+                .orElseThrow(() -> new CommunityException(ExceptionMessage.CATEGORY_NOT_FOUND));
 
         post.setTitle(postRequestDto.getTitle());
         post.setContent(postRequestDto.getContent());
@@ -170,7 +218,7 @@ public class PostServiceImpl implements PostService {
                     Path filePath = Paths.get("uploads").resolve(attachment.getSavedName());
                     Files.deleteIfExists(filePath);
                 } catch (IOException e) {
-                    throw new RuntimeException("첨부 파일 삭제 실패", e);
+                    throw new CommunityException(ExceptionMessage.ATTACHMENT_DELETE_FAILED);
                 }
 
                 post.getAttachments().remove(attachment);
@@ -181,6 +229,10 @@ public class PostServiceImpl implements PostService {
         if (files != null) {
             for (MultipartFile file : files) {
                 String originalName = file.getOriginalFilename();
+                if (originalName == null || originalName.isBlank()) { // 3️⃣ 파일 이름 null 체크
+                    throw new CommunityException(ExceptionMessage.ATTACHMENT_INVALID_NAME);
+                }
+
                 String savedName = UUID.randomUUID() + "_" + originalName;
                 String fileUrl = "/uploads/" + savedName;
 
@@ -189,7 +241,7 @@ public class PostServiceImpl implements PostService {
                     Files.createDirectories(uploadPath.getParent());
                     file.transferTo(uploadPath);
                 } catch (Exception e) {
-                    throw new RuntimeException("파일 저장 실패", e);
+                    throw new CommunityException(ExceptionMessage.ATTACHMENT_SAVE_FAILED);
                 }
 
                 Attachment attachment = null;
@@ -204,14 +256,15 @@ public class PostServiceImpl implements PostService {
                             .fileData(file.getBytes())
                             .build();
                 } catch (IOException e) {
-                    throw new RuntimeException(e);
+                    throw new CommunityException(ExceptionMessage.ATTACHMENT_SAVE_FAILED);
                 }
 
                 post.getAttachments().add(attachment);
             }
         }
 
-        List<CommentResponseDto> comments = commentService.getCommentsByPostId(postId);
+        List<CommentResponseDto> comments = Optional.ofNullable(commentService.getCommentsByPostId(postId))
+                .orElse(Collections.emptyList());
 
         List<AttachmentResponseDto> attachments = post.getAttachments().stream()
                 .map(att -> new AttachmentResponseDto(
@@ -247,10 +300,48 @@ public class PostServiceImpl implements PostService {
         postRepository.deleteById(postId);
     }
 
-
     @Override
     public Optional<Category> findCategoryById(int categoryId) {
 
         return categoryRepository.findById(categoryId);
+    }
+
+    @Override
+    public Page<SearchPostsResponseDto> searchPosts(String type, String keyword, int page, int numOfRows, String sortBy, String sortDir) {
+        Sort.Direction direction = sortDir.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+        Pageable pageable;
+        // 정렬할 필드 매핑
+        switch (sortBy) {
+            case "latest" -> pageable = PageRequest.of(page - 1, numOfRows, Sort.by(Sort.Direction.DESC, "createdAt"));
+            case "oldest" -> pageable = PageRequest.of(page - 1, numOfRows, Sort.by(Sort.Direction.ASC, "createdAt"));
+            case "views" -> pageable = PageRequest.of(page - 1, numOfRows, Sort.by(direction, "viewCount"));
+            case "likes" -> pageable = PageRequest.of(page - 1, numOfRows); // 좋아요는 별도 쿼리에서 처리
+            default -> pageable = PageRequest.of(page - 1, numOfRows, Sort.by(Sort.Direction.DESC, "createdAt"));
+        }
+
+        return switch (type) {
+            case "title" -> {
+                if ("likes".equals(sortBy)) {
+                    yield postRepository.findByTitleOrderByLikes(keyword, pageable); // Repository에서 COUNT(l) 기준 정렬
+                } else {
+                    yield postRepository.findByTitle(keyword, pageable);
+                }
+            }
+            case "titleAndContent" -> {
+                if ("likes".equals(sortBy)) {
+                    yield postRepository.findByTitleOrContentOrderByLikes(keyword, pageable);
+                } else {
+                    yield postRepository.findByTitleOrContent(keyword, pageable);
+                }
+            }
+            case "author" -> {
+                if ("likes".equals(sortBy)) {
+                    yield postRepository.findByAuthorNicknameOrderByLikes(keyword, pageable);
+                } else {
+                    yield postRepository.findByAuthorNickname(keyword, pageable);
+                }
+            }
+            default -> throw new CommunityException(ExceptionMessage.INVALID_SEARCH_TYPE);
+        };
     }
 }

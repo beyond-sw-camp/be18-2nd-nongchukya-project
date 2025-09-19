@@ -18,6 +18,18 @@ public enum ExceptionMessage {
     FORBIDDEN_NOTIFICATION_DELETE("내 알림만 삭제할 수 있습니다.", HttpStatus.FORBIDDEN),
     LOGINID_NOT_FOUND("로그인 아이디가 없습니다.",   HttpStatus.NOT_FOUND),
     // community
+    POST_NOT_FOUND("게시글을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    POST_TITLE_BLANK("게시글은 제목을 입력해주세요.", HttpStatus.BAD_REQUEST),
+    COMMENT_NOT_FOUND("댓글을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    COMMENT_CONTENT_BLANK("댓글의 내용이 존재하지 않습니다.", HttpStatus.BAD_REQUEST),
+    CATEGORY_NOT_FOUND("존재하지 않는 카테고리입니다.", HttpStatus.NOT_FOUND),
+    NOT_POST_CREATOR("게시글 작성자가 아닙니다.",  HttpStatus.FORBIDDEN),
+    NOT_COMMENT_CREATOR("댓글 작성자가 아닙니다.", HttpStatus.FORBIDDEN),
+    ATTACHMENT_INVALID_NAME("올바른 첨부파일 이름이 아닙니다.", HttpStatus.BAD_REQUEST),
+    ATTACHMENT_SAVE_FAILED("첨부파일 저장에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+    ATTACHMENT_DELETE_FAILED("첨부파일 삭제에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+    INVALID_SEARCH_TYPE("현재 지원하지 않는 검색 방식입니다.", HttpStatus.BAD_REQUEST),
+    SEARCH_KEYWORD_BLANK("검색어를 입력해 주세요.", HttpStatus.BAD_REQUEST),
     // friend
     // match
     MATCH_APPLICATION_NOT_FOUND("매칭 신청 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),

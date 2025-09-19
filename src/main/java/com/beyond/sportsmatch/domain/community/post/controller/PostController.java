@@ -19,10 +19,13 @@ package com.beyond.sportsmatch.domain.community.post.controller;
 import com.beyond.sportsmatch.auth.model.service.UserDetailsImpl;
 import com.beyond.sportsmatch.common.dto.BaseResponseDto;
 import com.beyond.sportsmatch.common.dto.ItemsResponseDto;
+import com.beyond.sportsmatch.common.exception.CommunityException;
+import com.beyond.sportsmatch.common.exception.message.ExceptionMessage;
 import com.beyond.sportsmatch.domain.community.post.model.dto.AttachmentResponseDto;
 import com.beyond.sportsmatch.domain.community.post.model.dto.PostRequestDto;
 import com.beyond.sportsmatch.domain.community.post.model.dto.PostResponseDto;
 import com.beyond.sportsmatch.domain.community.post.model.dto.PostsResponseDto;
+import com.beyond.sportsmatch.domain.community.post.model.dto.SearchPostsResponseDto;
 import com.beyond.sportsmatch.domain.community.post.model.dto.UpdatePostRequestDto;
 import com.beyond.sportsmatch.domain.community.post.model.service.PostService;
 import com.beyond.sportsmatch.domain.community.post.model.entity.Category;
@@ -30,6 +33,7 @@ import com.beyond.sportsmatch.domain.community.post.model.entity.Post;
 
 import com.beyond.sportsmatch.domain.user.model.entity.User;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -56,16 +60,20 @@ public class PostController {
     private final PostService postService;
 
     @GetMapping("/posts")
-    public ResponseEntity<ItemsResponseDto<PostsResponseDto>> getPosts(@RequestParam int page, @RequestParam int numOfRows) {
+    public ResponseEntity<ItemsResponseDto<PostsResponseDto>> getPosts(
+            @RequestParam int page,
+            @RequestParam int numOfRows,
+            @RequestParam(defaultValue = "latest") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir) {
         int totalCount = postService.getTotalCount();
-        List<PostsResponseDto> posts = postService.getPosts(page, numOfRows);
+        List<PostsResponseDto> posts = postService.getPosts(page, numOfRows, sortBy, sortDir);
 
         if(!posts.isEmpty()){
             return ResponseEntity.ok(
                     new ItemsResponseDto<>(HttpStatus.OK, posts, page, totalCount)
             );
         }else{
-            throw new RuntimeException("게시글이 없습니다.");
+            throw new CommunityException(ExceptionMessage.POST_NOT_FOUND);
         }
     }
 
@@ -89,8 +97,12 @@ public class PostController {
 
         User user = userDetails.getUser();
 
+        if (postRequestDto.getTitle() == null || postRequestDto.getTitle().trim().isEmpty()) {
+            throw new CommunityException(ExceptionMessage.POST_TITLE_BLANK);
+        }
+
         Category category = postService.findCategoryById(postRequestDto.getCategoryId())
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 카테고리입니다."));
+                .orElseThrow(() -> new CommunityException(ExceptionMessage.CATEGORY_NOT_FOUND));
 
         // DB 저장 후 생성된 PK값을 사용하기 위해 DB에 먼저 저장
         Post savedPost = postService.createPost(postRequestDto, files, user, category);
@@ -143,14 +155,45 @@ public class PostController {
         User user = userDetails.getUser();
 
         Post post = postService.getPostById(postId)
-                .orElseThrow(() -> new RuntimeException("게시글이 없습니다."));
+                .orElseThrow(() -> new CommunityException(ExceptionMessage.POST_NOT_FOUND));
 
         if(post.getUser().getUserId()!=(user.getUserId())){
-            throw new RuntimeException("작성자만 삭제할 수 있습니다.");
+            throw new CommunityException(ExceptionMessage.NOT_POST_CREATOR);
         }
 
         postService.deletePost(postId);
 
         return ResponseEntity.ok(new BaseResponseDto<>(HttpStatus.OK, "게시글이 삭제되었습니다."));
+    }
+
+    @GetMapping("/posts/search")
+    public ResponseEntity<ItemsResponseDto<SearchPostsResponseDto>> searchPosts(
+            @RequestParam String type,
+            @RequestParam String keyword,
+            @RequestParam int page,
+            @RequestParam int numOfRows,
+            @RequestParam(defaultValue = "latest") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir) {
+
+        if (keyword == null || keyword.trim().isEmpty()) {
+
+            throw new CommunityException(ExceptionMessage.SEARCH_KEYWORD_BLANK);
+        }
+
+        Page<SearchPostsResponseDto> postPage = postService.searchPosts(type, keyword, page, numOfRows, sortBy, sortDir);
+        List<SearchPostsResponseDto> posts = postPage.getContent();
+
+        if (postPage.isEmpty()) {
+            throw new CommunityException(ExceptionMessage.POST_NOT_FOUND);
+        }
+
+        return ResponseEntity.ok(
+                new ItemsResponseDto<>(
+                        HttpStatus.OK,
+                        posts,
+                        page,
+                        (int)postPage.getTotalElements()
+                )
+        );
     }
 }

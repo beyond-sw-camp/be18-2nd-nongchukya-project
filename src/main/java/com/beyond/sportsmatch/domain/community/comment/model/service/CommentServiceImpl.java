@@ -1,5 +1,7 @@
 package com.beyond.sportsmatch.domain.community.comment.model.service;
 
+import com.beyond.sportsmatch.common.exception.CommunityException;
+import com.beyond.sportsmatch.common.exception.message.ExceptionMessage;
 import com.beyond.sportsmatch.domain.community.comment.model.dto.CommentRequestDto;
 import com.beyond.sportsmatch.domain.community.comment.model.dto.CommentResponseDto;
 import com.beyond.sportsmatch.domain.community.comment.model.repository.CommentRepository;
@@ -21,7 +23,11 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public Comment save(User user, Post post, Comment parentComment, String content) {
         if (content == null || content.trim().isEmpty()) {
-            throw new IllegalArgumentException("댓글 내용을 입력해주세요.");
+            throw new CommunityException(ExceptionMessage.COMMENT_CONTENT_BLANK);
+        }
+
+        if (parentComment != null && !commentRepository.existsById(parentComment.getCommentId())) {
+            throw new CommunityException(ExceptionMessage.COMMENT_NOT_FOUND);
         }
 
         Comment comment = Comment.builder()
@@ -38,7 +44,7 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public Comment getCommentById(int commentId) {
         return commentRepository.findById(commentId)
-                .orElseThrow(() -> new RuntimeException("댓글이 존재하지 않습니다. id=" + commentId));
+                .orElseThrow(() -> new CommunityException(ExceptionMessage.COMMENT_NOT_FOUND));
     }
 
     @Transactional(readOnly = true)
@@ -58,7 +64,7 @@ public class CommentServiceImpl implements CommentService {
 
         // 작성자 검증
         if (comment.getUser().getUserId()!=(user.getUserId())) {
-            throw new RuntimeException("작성자만 수정할 수 있습니다.");
+            throw new CommunityException(ExceptionMessage.NOT_COMMENT_CREATOR);
         }
 
         comment.setContent(commentRequestDto.getContent());
@@ -72,7 +78,7 @@ public class CommentServiceImpl implements CommentService {
         Comment comment = getCommentById(commentId);
 
         if (comment.getUser().getUserId()!=(user.getUserId())) {
-            throw new RuntimeException("작성자만 수정할 수 있습니다.");
+            throw new CommunityException(ExceptionMessage.NOT_COMMENT_CREATOR);
         }
 
         // 자식 댓글이 있으면 모두 삭제 (cascade = ALL + orphanRemoval = true)
