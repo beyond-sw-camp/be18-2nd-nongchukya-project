@@ -1,7 +1,7 @@
 package com.beyond.sportsmatch.domain.friend.model.service;
 
 
-import com.beyond.sportsmatch.domain.friend.model.dto.FriendRequestDto;
+import com.beyond.sportsmatch.domain.friend.model.dto.FriendResponseDto;
 import com.beyond.sportsmatch.domain.friend.model.repository.FriendRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -15,7 +15,7 @@ public class FriendServiceImpl implements FriendService {
     private final FriendRepository friendRepository;
 
     @Override
-    public List<FriendRequestDto> getFriends(int loginUserId) {
+    public List<FriendResponseDto> getFriends(int loginUserId) {
 
         return friendRepository.findFriendsByUserId(loginUserId);
     }

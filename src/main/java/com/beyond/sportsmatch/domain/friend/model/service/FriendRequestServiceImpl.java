@@ -1,7 +1,7 @@
 package com.beyond.sportsmatch.domain.friend.model.service;
 
 
-import com.beyond.sportsmatch.domain.friend.model.dto.FriendRequestDto;
+import com.beyond.sportsmatch.domain.friend.model.dto.FriendResponseDto;
 import com.beyond.sportsmatch.domain.friend.model.entity.Friend;
 import com.beyond.sportsmatch.domain.friend.model.entity.FriendRequest;
 import com.beyond.sportsmatch.domain.friend.model.repository.FriendRepository;
@@ -22,13 +22,13 @@ public class FriendRequestServiceImpl implements FriendRequestService {
     private final FriendRepository friendRepository;
 
     @Override
-    public List<FriendRequestDto> getReceivedFriendRequests(int receiverUserId) {
+    public List<FriendResponseDto> getReceivedFriendRequests(int receiverUserId) {
 
         return friendRequestRepository.findReceivedFriendRequestsByUserId(receiverUserId);
     }
 
     @Override
-    public List<FriendRequestDto> getSentFriendRequests(int senderUserId) {
+    public List<FriendResponseDto> getSentFriendRequests(int senderUserId) {
 
         return friendRequestRepository.findSentFriendRequestsByUserId(senderUserId);
     }

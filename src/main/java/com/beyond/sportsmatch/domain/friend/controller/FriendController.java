@@ -2,7 +2,7 @@ package com.beyond.sportsmatch.domain.friend.controller;
 
 
 import com.beyond.sportsmatch.auth.model.service.UserDetailsImpl;
-import com.beyond.sportsmatch.domain.friend.model.dto.FriendRequestDto;
+import com.beyond.sportsmatch.domain.friend.model.dto.FriendResponseDto;
 import com.beyond.sportsmatch.domain.friend.model.service.FriendRequestService;
 import com.beyond.sportsmatch.domain.friend.model.service.FriendService;
 import lombok.RequiredArgsConstructor;
@@ -28,10 +28,10 @@ public class FriendController {
     private final FriendRequestService friendRequestService;
 
     @GetMapping("/list") // 친구 리스트 확인 메소드
-    public ResponseEntity<List<FriendRequestDto>> getFriends(@AuthenticationPrincipal UserDetailsImpl loginUser) {
+    public ResponseEntity<List<FriendResponseDto>> getFriends(@AuthenticationPrincipal UserDetailsImpl loginUser) {
 
         int loginUserId = loginUser.getUser().getUserId();
-        List<FriendRequestDto> friends = friendService.getFriends(loginUserId);
+        List<FriendResponseDto> friends = friendService.getFriends(loginUserId);
 
         if (friends.isEmpty()) {
             return ResponseEntity.noContent().build();
@@ -48,18 +48,18 @@ public class FriendController {
     }
 
     @GetMapping("/requests/received") // 받은 친구 추가 요청 리스트 확인 메소드
-    public ResponseEntity<List<FriendRequestDto>> getReceivedFriendRequests(@AuthenticationPrincipal UserDetailsImpl receiverUser) {
+    public ResponseEntity<List<FriendResponseDto>> getReceivedFriendRequests(@AuthenticationPrincipal UserDetailsImpl receiverUser) {
         int receiverUserId = receiverUser.getUser().getUserId();
-        List<FriendRequestDto> friendsRequest = friendRequestService.getReceivedFriendRequests(receiverUserId);
+        List<FriendResponseDto> friendsRequest = friendRequestService.getReceivedFriendRequests(receiverUserId);
 
         return ResponseEntity.ok(friendsRequest);
     }
 
     @GetMapping("/requests/sent") // 보낸 친구 추가 요청 리스트 확인 메소드
-    public ResponseEntity<List<FriendRequestDto>> getSentFriendRequests(@AuthenticationPrincipal UserDetailsImpl senderUser) {
+    public ResponseEntity<List<FriendResponseDto>> getSentFriendRequests(@AuthenticationPrincipal UserDetailsImpl senderUser) {
         int senderUserId = senderUser.getUser().getUserId();
 
-        List<FriendRequestDto> friendsRequest = friendRequestService.getSentFriendRequests(senderUserId);
+        List<FriendResponseDto> friendsRequest = friendRequestService.getSentFriendRequests(senderUserId);
 
         return ResponseEntity.ok(friendsRequest);
     }
