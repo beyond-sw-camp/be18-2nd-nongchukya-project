@@ -1,7 +1,7 @@
 package com.beyond.sportsmatch.domain.friend.model.repository;
 
 
-import com.beyond.sportsmatch.domain.friend.model.dto.FriendRequestDto;
+import com.beyond.sportsmatch.domain.friend.model.dto.FriendResponseDto;
 import com.beyond.sportsmatch.domain.friend.model.entity.FriendRequest;
 import com.beyond.sportsmatch.domain.user.model.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -14,15 +14,15 @@ import java.util.List;
 
 @Repository
 public interface FriendRequestRepository extends JpaRepository<FriendRequest, Integer> {
-    @Query("SELECT new com.beyond.sportsmatch.domain.friend.model.dto.FriendRequestDto(u.nickname, u.profileImage, fr.createdAt) " +
+    @Query("SELECT new com.beyond.sportsmatch.domain.friend.model.dto.FriendResponseDto(u.nickname, u.profileImage, fr.createdAt) " +
             "FROM FriendRequest fr JOIN fr.senderUserId u " +
             "WHERE fr.receiverUserId.userId = :receiverUserId")
-    List<FriendRequestDto> findReceivedFriendRequestsByUserId(int receiverUserId);
+    List<FriendResponseDto> findReceivedFriendRequestsByUserId(int receiverUserId);
 
-    @Query("SELECT new com.beyond.sportsmatch.domain.friend.model.dto.FriendRequestDto(u.nickname, u.profileImage, fr.createdAt) " +
+    @Query("SELECT new com.beyond.sportsmatch.domain.friend.model.dto.FriendResponseDto(u.nickname, u.profileImage, fr.createdAt) " +
             "FROM FriendRequest fr JOIN fr.receiverUserId u " +
             "WHERE fr.senderUserId.userId = :senderUserId")
-    List<FriendRequestDto> findSentFriendRequestsByUserId(int senderUserId);
+    List<FriendResponseDto> findSentFriendRequestsByUserId(int senderUserId);
 
     @Query("DELETE FROM FriendRequest fr " +
             "WHERE fr.senderUserId.userId = :senderUserId " +
