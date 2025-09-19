@@ -1,5 +1,6 @@
 package com.beyond.sportsmatch.common.exception.handler;
 
+import com.beyond.sportsmatch.common.exception.ChatException;
 import com.beyond.sportsmatch.common.exception.SportsMatchException;
 import com.beyond.sportsmatch.common.exception.dto.ApiErrorResponseDto;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +29,22 @@ public class GlobalExceptionHandler {
                 e.getMessage()
         );
 
+        map.put("code", e.getStatus().value());
+        map.put("status", e.getType());
+        map.put("message", e.getMessage());
+
+        return new ResponseEntity<>(apiErrorResponseDto, e.getStatus());
+    }
+
+    @ExceptionHandler(ChatException.class)
+    public ResponseEntity<Object> handleException(ChatException e) {
+        Map<String,Object> map = new HashMap<>();
+        log.error("ChatException: {}", e.getMessage());
+        ApiErrorResponseDto apiErrorResponseDto = new ApiErrorResponseDto(
+                e.getStatus().value(),
+                e.getType(),
+                e.getMessage()
+        );
         map.put("code", e.getStatus().value());
         map.put("status", e.getType());
         map.put("message", e.getMessage());
