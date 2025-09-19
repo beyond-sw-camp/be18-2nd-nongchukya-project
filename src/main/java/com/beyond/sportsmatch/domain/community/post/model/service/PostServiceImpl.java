@@ -80,6 +80,14 @@ public class PostServiceImpl implements PostService {
                 }
                 break;
 
+            case "comments":
+                if (direction == Sort.Direction.DESC) {
+                    postPage = postRepository.findPostsOrderByCommentsDesc(PageRequest.of(page - 1, numOfRows));
+                } else {
+                    postPage = postRepository.findPostsOrderByCommentsAsc(PageRequest.of(page - 1, numOfRows));
+                }
+                break;
+
             default:
                 pageable = PageRequest.of(page - 1, numOfRows, Sort.by(direction, "createdAt"));
                 postPage = postRepository.findPostsWithCommentAndLikeCount(pageable);
@@ -316,13 +324,18 @@ public class PostServiceImpl implements PostService {
             case "oldest" -> pageable = PageRequest.of(page - 1, numOfRows, Sort.by(Sort.Direction.ASC, "createdAt"));
             case "views" -> pageable = PageRequest.of(page - 1, numOfRows, Sort.by(direction, "viewCount"));
             case "likes" -> pageable = PageRequest.of(page - 1, numOfRows); // 좋아요는 별도 쿼리에서 처리
+            case "comments" -> pageable = PageRequest.of(page - 1, numOfRows); // 별도 JPQL
             default -> pageable = PageRequest.of(page - 1, numOfRows, Sort.by(Sort.Direction.DESC, "createdAt"));
         }
 
         return switch (type) {
             case "title" -> {
                 if ("likes".equals(sortBy)) {
-                    yield postRepository.findByTitleOrderByLikes(keyword, pageable); // Repository에서 COUNT(l) 기준 정렬
+                    yield postRepository.findByTitleOrderByLikes(keyword, pageable);
+                } else if ("comments".equals(sortBy)) {
+                    yield (direction == Sort.Direction.DESC)
+                            ? postRepository.findByTitleOrderByCommentsDesc(keyword, pageable)
+                            : postRepository.findByTitleOrderByCommentsAsc(keyword, pageable);
                 } else {
                     yield postRepository.findByTitle(keyword, pageable);
                 }
@@ -330,6 +343,10 @@ public class PostServiceImpl implements PostService {
             case "titleAndContent" -> {
                 if ("likes".equals(sortBy)) {
                     yield postRepository.findByTitleOrContentOrderByLikes(keyword, pageable);
+                } else if ("comments".equals(sortBy)) {
+                    yield (direction == Sort.Direction.DESC)
+                            ? postRepository.findByTitleOrContentOrderByCommentsDesc(keyword, pageable)
+                            : postRepository.findByTitleOrContentOrderByCommentsAsc(keyword, pageable);
                 } else {
                     yield postRepository.findByTitleOrContent(keyword, pageable);
                 }
@@ -337,6 +354,10 @@ public class PostServiceImpl implements PostService {
             case "author" -> {
                 if ("likes".equals(sortBy)) {
                     yield postRepository.findByAuthorNicknameOrderByLikes(keyword, pageable);
+                } else if ("comments".equals(sortBy)) {
+                    yield (direction == Sort.Direction.DESC)
+                            ? postRepository.findByAuthorNicknameOrderByCommentsDesc(keyword, pageable)
+                            : postRepository.findByAuthorNicknameOrderByCommentsAsc(keyword, pageable);
                 } else {
                     yield postRepository.findByAuthorNickname(keyword, pageable);
                 }
