@@ -7,6 +7,7 @@ import com.beyond.sportsmatch.domain.user.model.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,4 +42,10 @@ public interface FriendRequestRepository extends JpaRepository<FriendRequest, In
     @Modifying
     @Transactional
     boolean existsBySenderUserIdAndReceiverUserIdAndStatus(User sender, User receiver, String Pending);
+
+    @Query("SELECT CASE WHEN COUNT(fr) > 0 THEN true ELSE false END " +
+            "FROM FriendRequest fr " +
+            "WHERE fr.senderUserId.userId = :senderUserId " +
+            "AND fr.receiverUserId.userId = :receiverUserId")
+    boolean existsBySenderUserIdAndReceiverUserId(@Param("senderUserId") int senderUserId, @Param("receiverUserId") int receiverUserId);
 }
