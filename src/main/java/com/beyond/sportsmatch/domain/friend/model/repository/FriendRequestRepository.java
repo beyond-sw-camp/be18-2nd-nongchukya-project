@@ -15,12 +15,12 @@ import java.util.List;
 
 @Repository
 public interface FriendRequestRepository extends JpaRepository<FriendRequest, Integer> {
-    @Query("SELECT new com.beyond.sportsmatch.domain.friend.model.dto.FriendResponseDto(u.nickname, u.profileImage, fr.createdAt) " +
+    @Query("SELECT new com.beyond.sportsmatch.domain.friend.model.dto.FriendResponseDto(u.userId, u.nickname, u.profileImage, fr.createdAt) " +
             "FROM FriendRequest fr JOIN fr.senderUserId u " +
             "WHERE fr.receiverUserId.userId = :receiverUserId")
     List<FriendResponseDto> findReceivedFriendRequestsByUserId(int receiverUserId);
 
-    @Query("SELECT new com.beyond.sportsmatch.domain.friend.model.dto.FriendResponseDto(u.nickname, u.profileImage, fr.createdAt) " +
+    @Query("SELECT new com.beyond.sportsmatch.domain.friend.model.dto.FriendResponseDto(u.userId, u.nickname, u.profileImage, fr.createdAt) " +
             "FROM FriendRequest fr JOIN fr.receiverUserId u " +
             "WHERE fr.senderUserId.userId = :senderUserId")
     List<FriendResponseDto> findSentFriendRequestsByUserId(int senderUserId);
