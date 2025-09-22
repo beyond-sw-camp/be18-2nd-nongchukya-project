@@ -1,6 +1,6 @@
 package com.beyond.sportsmatch.auth.model.service;
 
-import jakarta.mail.MessagingException;
+import jakarta.mail .MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
