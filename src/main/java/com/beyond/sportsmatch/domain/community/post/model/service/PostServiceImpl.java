@@ -34,6 +34,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -44,48 +45,42 @@ public class PostServiceImpl implements PostService {
     private final PostLikeRepository postLikeRepository;
 
     @Override
-    public int getTotalCount() {
-
-        return (int) postRepository.count();
+    public int getTotalCount(String categoryName) {
+        if (categoryName == null || categoryName.isEmpty()) {
+            return (int) postRepository.count();
+        }
+        return postRepository.countByCategory_CategoryName(categoryName);
     }
 
+    @Transactional(readOnly = true)
     @Override
-    public List<PostsResponseDto> getPosts(int page, int numOfRows, String sortBy, String sortDir) {
-        Sort.Direction direction = sortDir.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
-        Pageable pageable;
-        Page<PostsResponseDto> postPage;
+    public List<PostsResponseDto> getPosts(int page, int size, String category, String sortBy, String sortDir) {
+        // Pageable 생성 (정렬 방향은 항상 DESC)
+        Pageable pageable = PageRequest.of(page - 1, size);
 
-        switch (sortBy) {
-            case "latest":
-                pageable = PageRequest.of(page - 1, numOfRows, Sort.by(Sort.Direction.DESC, "createdAt"));
-                postPage = postRepository.findPostsWithCommentAndLikeCount(pageable);
-                break;
+        Page<PostsResponseDto> postsPage;
 
-            case "oldest":
-                pageable = PageRequest.of(page - 1, numOfRows, Sort.by(Sort.Direction.ASC, "createdAt"));
-                postPage = postRepository.findPostsWithCommentAndLikeCount(pageable);
-                break;
-
-            case "views":
-                pageable = PageRequest.of(page - 1, numOfRows, Sort.by(direction, "viewCount"));
-                postPage = postRepository.findPostsWithCommentAndLikeCount(pageable);
-                break;
-
+        switch (sortBy.toLowerCase()) {
             case "likes":
-                // 좋아요 순 정렬은 컬렉션 COUNT 기반 쿼리에서 direction 적용
-                if (direction == Sort.Direction.DESC) {
-                    postPage = postRepository.findPostsOrderByLikesDesc(PageRequest.of(page - 1, numOfRows));
-                } else {
-                    postPage = postRepository.findPostsOrderByLikesAsc(PageRequest.of(page - 1, numOfRows));
-                }
+                postsPage = postRepository.findByCategoryOrderByLikesDesc(category, pageable);
                 break;
-
+            case "comments":
+                postsPage = postRepository.findByCategoryOrderByCommentsDesc(category, pageable);
+                break;
+            case "views":
+                postsPage = postRepository.findByCategoryOrderByViewsDesc(category, pageable);
+                break;
+            case "oldest":
+                // 오래된순: createdAt ASC
+                pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.ASC, "createdAt"));
+                return postRepository.findByCategory(category, pageable).getContent();
+            case "latest":
             default:
-                pageable = PageRequest.of(page - 1, numOfRows, Sort.by(direction, "createdAt"));
-                postPage = postRepository.findPostsWithCommentAndLikeCount(pageable);
+                postsPage = postRepository.findByCategoryOrderByLatest(category, pageable);
+                break;
         }
 
-        return postPage.getContent();
+        return postsPage.getContent();
     }
 
     @Override
@@ -112,6 +107,8 @@ public class PostServiceImpl implements PostService {
 
         int likeCount = postLikeRepository.countByPost_PostId(postId);
         boolean liked = postLikeRepository.existsByUser_UserIdAndPost_PostId((user.getUserId()), postId);
+        boolean isAuthor = ((post.getUser().getUserId()) == (user.getUserId()));
+
         postRepository.incrementViewCount(postId);
 
         return new PostResponseDto(
@@ -125,7 +122,8 @@ public class PostServiceImpl implements PostService {
                 comments,
                 attachments,
                 likeCount,
-                liked
+                liked,
+                isAuthor
         );
     }
 
@@ -187,7 +185,7 @@ public class PostServiceImpl implements PostService {
 
     @Transactional
     @Override
-    public PostResponseDto updatePost(UpdatePostRequestDto postRequestDto, List<MultipartFile> files, User user, int postId) {
+    public PostResponseDto updatePost(UpdatePostRequestDto updatePostRequestDto, List<MultipartFile> files, User user, int postId) {
         Post post = postRepository.findByIdWithUserAndComments(postId)
                 .orElseThrow(() -> new CommunityException(ExceptionMessage.POST_NOT_FOUND));
 
@@ -195,21 +193,21 @@ public class PostServiceImpl implements PostService {
             throw new CommunityException(ExceptionMessage.NOT_POST_CREATOR);
         }
 
-        if (postRequestDto.getTitle() == null || postRequestDto.getTitle().trim().isEmpty()) {
+        if (updatePostRequestDto.getTitle() == null || updatePostRequestDto.getTitle().trim().isEmpty()) {
             throw new CommunityException(ExceptionMessage.POST_TITLE_BLANK);
         }
 
-        Category category = categoryRepository.findById(postRequestDto.getCategoryId())
+        Category category = categoryRepository.findById(updatePostRequestDto.getCategoryId())
                 .orElseThrow(() -> new CommunityException(ExceptionMessage.CATEGORY_NOT_FOUND));
 
-        post.setTitle(postRequestDto.getTitle());
-        post.setContent(postRequestDto.getContent());
+        post.setTitle(updatePostRequestDto.getTitle());
+        post.setContent(updatePostRequestDto.getContent());
         post.setCategory(category);
 
         // 첨부파일 수정 -> 삭제
-        if (postRequestDto.getDeleteAttachmentIds() != null && !postRequestDto.getDeleteAttachmentIds().isEmpty()) {
+        if (updatePostRequestDto.getDeleteAttachmentIds() != null && !updatePostRequestDto.getDeleteAttachmentIds().isEmpty()) {
             List<Attachment> toRemove = post.getAttachments().stream()
-                    .filter(attachment -> postRequestDto.getDeleteAttachmentIds().contains(attachment.getAttachmentId()))
+                    .filter(attachment -> updatePostRequestDto.getDeleteAttachmentIds().contains(attachment.getAttachmentId()))
                     .toList();
 
             for (Attachment attachment : toRemove) {
@@ -290,7 +288,8 @@ public class PostServiceImpl implements PostService {
                 comments,
                 attachments,
                 likeCount,
-                liked
+                liked,
+                true
         );
     }
 
@@ -316,13 +315,18 @@ public class PostServiceImpl implements PostService {
             case "oldest" -> pageable = PageRequest.of(page - 1, numOfRows, Sort.by(Sort.Direction.ASC, "createdAt"));
             case "views" -> pageable = PageRequest.of(page - 1, numOfRows, Sort.by(direction, "viewCount"));
             case "likes" -> pageable = PageRequest.of(page - 1, numOfRows); // 좋아요는 별도 쿼리에서 처리
+            case "comments" -> pageable = PageRequest.of(page - 1, numOfRows); // 별도 JPQL
             default -> pageable = PageRequest.of(page - 1, numOfRows, Sort.by(Sort.Direction.DESC, "createdAt"));
         }
 
         return switch (type) {
             case "title" -> {
                 if ("likes".equals(sortBy)) {
-                    yield postRepository.findByTitleOrderByLikes(keyword, pageable); // Repository에서 COUNT(l) 기준 정렬
+                    yield postRepository.findByTitleOrderByLikes(keyword, pageable);
+                } else if ("comments".equals(sortBy)) {
+                    yield (direction == Sort.Direction.DESC)
+                            ? postRepository.findByTitleOrderByCommentsDesc(keyword, pageable)
+                            : postRepository.findByTitleOrderByCommentsAsc(keyword, pageable);
                 } else {
                     yield postRepository.findByTitle(keyword, pageable);
                 }
@@ -330,6 +334,10 @@ public class PostServiceImpl implements PostService {
             case "titleAndContent" -> {
                 if ("likes".equals(sortBy)) {
                     yield postRepository.findByTitleOrContentOrderByLikes(keyword, pageable);
+                } else if ("comments".equals(sortBy)) {
+                    yield (direction == Sort.Direction.DESC)
+                            ? postRepository.findByTitleOrContentOrderByCommentsDesc(keyword, pageable)
+                            : postRepository.findByTitleOrContentOrderByCommentsAsc(keyword, pageable);
                 } else {
                     yield postRepository.findByTitleOrContent(keyword, pageable);
                 }
@@ -337,6 +345,10 @@ public class PostServiceImpl implements PostService {
             case "author" -> {
                 if ("likes".equals(sortBy)) {
                     yield postRepository.findByAuthorNicknameOrderByLikes(keyword, pageable);
+                } else if ("comments".equals(sortBy)) {
+                    yield (direction == Sort.Direction.DESC)
+                            ? postRepository.findByAuthorNicknameOrderByCommentsDesc(keyword, pageable)
+                            : postRepository.findByAuthorNicknameOrderByCommentsAsc(keyword, pageable);
                 } else {
                     yield postRepository.findByAuthorNickname(keyword, pageable);
                 }

@@ -46,16 +46,6 @@ public class NotificationController {
         return ResponseEntity.ok(new BaseResponseDto<>(HttpStatus.OK, map));
     }
 
-//    @PostMapping("/{id}/read")
-//    @Transactional
-//    public void markRead(@PathVariable int id, @AuthenticationPrincipal UserDetailsImpl userDetails) throws AccessDeniedException {
-//        Notification n = notificationRepository.findById(id).orElseThrow();
-//        if(n.getUserId()!=userDetails.getUser().getUserId()) {
-//            throw new AccessDeniedException(("당신의 알림이 아닙니다."));
-//        }
-//        n.setReadAt(LocalDateTime.now());
-//    }
-
     @PostMapping("/read-all")
     @Transactional
     public ResponseEntity<BaseResponseDto<Map<String, Integer>>> markAllRead(@AuthenticationPrincipal UserDetailsImpl me) {

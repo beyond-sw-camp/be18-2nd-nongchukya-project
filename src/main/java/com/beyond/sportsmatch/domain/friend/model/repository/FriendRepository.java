@@ -11,10 +11,11 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface FriendRepository extends JpaRepository<Friend,Integer> {
-    @Query("SELECT new com.beyond.sportsmatch.domain.friend.model.dto.FriendResponseDto(u.nickname, u.profileImage, f.createdAt) " +
+    @Query("SELECT new com.beyond.sportsmatch.domain.friend.model.dto.FriendResponseDto(u.userId, u.nickname, u.profileImage, f.createdAt) " +
             "FROM Friend f JOIN f.friendUserId u " +
             "WHERE f.loginUserId.userId = :loginUserId")
     List<FriendResponseDto> findFriendsByUserId(@Param("loginUserId") int loginUserId);
@@ -22,4 +23,8 @@ public interface FriendRepository extends JpaRepository<Friend,Integer> {
     @Modifying
     @Transactional
     void deleteByLoginUserIdUserIdAndFriendUserIdUserId(int loginUserId, int friendUserId);
+
+    Optional<Friend> findByLoginUserIdUserIdAndFriendUserIdUserId(int loginUserId, int friendUserId);
+
+    boolean existsByLoginUserIdUserIdAndFriendUserIdUserId(int senderUserId, int receiverUserId);
 }

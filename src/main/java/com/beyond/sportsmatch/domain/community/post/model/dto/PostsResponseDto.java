@@ -24,4 +24,6 @@ public class PostsResponseDto {
     private final LocalDateTime createdAt;
 
     private final int viewCount;
+
+    private final String categoryName;
 }

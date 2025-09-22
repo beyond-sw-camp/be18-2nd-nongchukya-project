@@ -19,9 +19,9 @@ public interface PostService {
 
     Optional<Category> findCategoryById(int categoryId);
 
-    int getTotalCount();
+    int getTotalCount(String category);
 
-    List<PostsResponseDto> getPosts(int page, int numOfRows, String sortBy, String sortDir);
+    List<PostsResponseDto> getPosts(int page, int numOfRows, String category, String sortBy, String sortDir);
 
     Optional<Post> getPostById(int postId);
 

@@ -22,13 +22,16 @@ public class CommentResponseDto {
 
     private final List<CommentResponseDto> replies;
 
+    private final boolean isAuthor; // 게시글 작성자인지 여부
+
     // 5인자 생성자
-    public CommentResponseDto(int commentId, String userNickname, String content, LocalDateTime createdAt, List<CommentResponseDto> replies) {
+    public CommentResponseDto(int commentId, String userNickname, String content, LocalDateTime createdAt, List<CommentResponseDto> replies, boolean isAuthor) {
         this.commentId = commentId;
         this.userNickname = userNickname;
         this.content = content;
         this.createdAt = createdAt;
         this.replies = new ArrayList<>(replies); // 리스트 복사
+        this.isAuthor = isAuthor;
     }
 
     // Comment -> DTO 변환
@@ -38,12 +41,16 @@ public class CommentResponseDto {
                 : comment.getReplies().stream()
                 .map(CommentResponseDto::from)
                 .toList();
+
+        boolean isAuthor = (comment.getUser().getUserId()) == (comment.getPost().getUser().getUserId());
+
         return new CommentResponseDto(
                 comment.getCommentId(),
                 comment.getUser().getNickname(),
                 comment.getContent(),
                 comment.getCreatedAt(),
-                replyDtos
+                replyDtos,
+                isAuthor
         );
     }
 }
