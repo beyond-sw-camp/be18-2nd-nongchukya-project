@@ -58,10 +58,10 @@ public class FriendRequestServiceImpl implements FriendRequestService {
 
     @Override
     @Transactional
-    public void sendFriendRequest(int senderUserId, String receiverUserNickname) {
+    public void sendFriendRequest(int senderUserId, int receiverUserId) {
         User sender = userRepository.findById(senderUserId)
                 .orElseThrow(() -> new SportsMatchException(ExceptionMessage.USER_NOT_FOUND));
-        User receiver = userRepository.findByNickname(receiverUserNickname)
+        User receiver = userRepository.findById(receiverUserId)
                 .orElseThrow(() -> new SportsMatchException(ExceptionMessage.USER_NOT_FOUND));
 
         boolean exists = friendRequestRepository.existsBySenderUserIdAndReceiverUserIdAndStatus(sender, receiver, "Pending");
