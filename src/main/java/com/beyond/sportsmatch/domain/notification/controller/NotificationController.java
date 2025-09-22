@@ -2,6 +2,7 @@ package com.beyond.sportsmatch.domain.notification.controller;
 
 import com.beyond.sportsmatch.auth.model.service.UserDetailsImpl;
 import com.beyond.sportsmatch.common.dto.BaseResponseDto;
+import com.beyond.sportsmatch.common.dto.ItemsResponseDto;
 import com.beyond.sportsmatch.domain.notification.model.entity.Notification;
 import com.beyond.sportsmatch.domain.notification.model.repository.NotificationRepository;
 import com.beyond.sportsmatch.domain.notification.model.service.NotificationService;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.nio.file.AccessDeniedException;
@@ -33,9 +35,11 @@ public class NotificationController {
     private final NotificationService notificationService;
 
     @GetMapping
-    public ResponseEntity<BaseResponseDto<Notification>> getNotifications(@AuthenticationPrincipal UserDetailsImpl userDetails) {
-        List<Notification> notifications = notificationService.getNotifications(userDetails);
-        return ResponseEntity.ok(new BaseResponseDto<>(HttpStatus.OK, notifications));
+    public ResponseEntity<ItemsResponseDto<Notification>> getNotifications(@AuthenticationPrincipal UserDetailsImpl userDetails,
+                                                                           @RequestParam(defaultValue = "0") int page,
+                                                                           @RequestParam(defaultValue = "20") int size) {
+        ItemsResponseDto<Notification> notifications = notificationService.getNotifications(userDetails, page, size);
+        return ResponseEntity.ok(notifications);
     }
 
     @GetMapping("/unread-count")
