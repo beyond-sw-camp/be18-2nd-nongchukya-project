@@ -1,5 +1,6 @@
 package com.beyond.sportsmatch.domain.chat.controller;
 
+import com.beyond.sportsmatch.common.dto.BaseResponseDto;
 import com.beyond.sportsmatch.domain.chat.model.repository.VoteRepository;
 import com.beyond.sportsmatch.domain.chat.model.service.VoteService;
 import com.beyond.sportsmatch.domain.chat.model.entity.Vote;
@@ -26,28 +27,29 @@ public class VoteController {
 
     // 투표 생성
     @PostMapping("/chatrooms/{chatRoomId}")
-    public ResponseEntity<Vote> createVote(@PathVariable int chatRoomId,
-                                           @RequestBody Map<String, Object> req) {
+    public ResponseEntity<BaseResponseDto<Vote>> createVote(@PathVariable int chatRoomId,
+                                                            @RequestBody Map<String, Object> req) {
         String title = (String) req.get("title");
         List<String> options = (List<String>) req.get("options");
         Vote vote = voteService.createVote(chatRoomId, title, options);
-        return  ResponseEntity.status(HttpStatus.CREATED).body(vote);
+        return ResponseEntity.ok(new BaseResponseDto<>(HttpStatus.CREATED, vote));
     }
 
     @PostMapping("/{voteId}/vote")
-    public ResponseEntity<?> castVote(@PathVariable int voteId, @RequestBody Map<String, Object> req) {
+    public ResponseEntity<BaseResponseDto<String>> castVote(@PathVariable int voteId, @RequestBody Map<String, Object> req) {
         String selectedOption = (String) req.get("selectedOption");
         voteService.castVote(voteId, selectedOption);
-        return ResponseEntity.ok("투표가 완료되었습니다.");
+        return ResponseEntity.ok(new BaseResponseDto<>(HttpStatus.OK, "투표가 완료되었습니다."));
     }
 
     @GetMapping("/{voteId}/results")
-    public ResponseEntity<?> getResultsByVoteId(@PathVariable int voteId) {
-        return ResponseEntity.ok(voteService.getResults(voteId));
+    public ResponseEntity<BaseResponseDto<Object>> getResultsByVoteId(@PathVariable int voteId) {
+
+        return ResponseEntity.ok(new BaseResponseDto<>(HttpStatus.OK, voteService.getResults(voteId)));
     }
 
     @GetMapping("/chatrooms/{chatRoomId}")
-    public ResponseEntity<?> list(@PathVariable int chatRoomId) {
+    public ResponseEntity<BaseResponseDto<List<Map<String, Object>>>> list(@PathVariable int chatRoomId) {
         List<Vote> votes = voteRepository.findByChatRoom_ChatRoomId(chatRoomId);
 
         List<Map<String, Object>> response = votes.stream().map(v -> {
@@ -59,6 +61,6 @@ public class VoteController {
             return map;
         }).toList();
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(new BaseResponseDto<List<Map<String, Object>>>(HttpStatus.OK, response));
     }
 }

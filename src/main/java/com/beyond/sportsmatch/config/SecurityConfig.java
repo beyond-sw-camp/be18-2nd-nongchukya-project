@@ -9,6 +9,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -56,14 +57,16 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "api/v1/auth/**",
-                                "auth/kakao/callback",
+                                "/api/v1/auth/**",
+                                "/auth/kakao/callback",
                                 "/ws/**",
                                 "/api/v1/sse/**"
                         ).permitAll()
                         // 임박 매칭 리스트, 날짜별 매칭 리스트는 공개
                         .requestMatchers("api/v1/match-service/imminent-matches", "api/v1/match-service/matches-by-date").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/community/**").permitAll()
+                        .requestMatchers("/uploads/**").permitAll()
+                        .requestMatchers("/favicon.ico", "/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
@@ -73,9 +76,16 @@ public class SecurityConfig {
     }
 
     @Bean
+    public WebSecurityCustomizer webSecurityCustomizer() {
+        return (web) -> web.ignoring()
+                .requestMatchers("/favicon.ico", "/css/**", "/js/**", "/images/**", "/webjars/**");
+    }
+
+    @Bean
     CorsConfigurationSource corsConfigurationSource(){
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:3000"));
+        configuration.setAllowedOrigins(List.of("http://localhost:3000",
+                                                "http://localhost:5173"));
         configuration.setAllowedMethods(List.of("*")); //모든 HTTP메서드 허용
         configuration.setAllowedHeaders(List.of("*")); //모든 헤더값 허용
         configuration.setAllowCredentials(true); //자격증명허용

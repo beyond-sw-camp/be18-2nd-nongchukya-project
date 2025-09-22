@@ -2,6 +2,7 @@ package com.beyond.sportsmatch.domain.community.post.controller;
 
 import com.beyond.sportsmatch.domain.community.post.model.service.PostLikeService;
 import com.beyond.sportsmatch.auth.model.service.UserDetailsImpl;
+import com.beyond.sportsmatch.domain.notification.model.service.NotificationService;
 import com.beyond.sportsmatch.domain.user.model.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

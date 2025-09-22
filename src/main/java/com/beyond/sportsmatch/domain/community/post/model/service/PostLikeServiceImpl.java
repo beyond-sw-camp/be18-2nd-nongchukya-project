@@ -1,10 +1,13 @@
 package com.beyond.sportsmatch.domain.community.post.model.service;
 
+import com.beyond.sportsmatch.common.exception.CommunityException;
+import com.beyond.sportsmatch.common.exception.message.ExceptionMessage;
 import com.beyond.sportsmatch.domain.community.post.model.repository.PostLikeRepository;
 import com.beyond.sportsmatch.domain.community.post.model.repository.PostRepository;
 import com.beyond.sportsmatch.domain.community.post.model.entity.Post;
 import com.beyond.sportsmatch.domain.community.post.model.entity.PostLike;
 import com.beyond.sportsmatch.domain.community.post.model.entity.PostLikeId;
+import com.beyond.sportsmatch.domain.notification.model.service.NotificationService;
 import com.beyond.sportsmatch.domain.user.model.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -14,11 +17,12 @@ import org.springframework.stereotype.Service;
 public class PostLikeServiceImpl implements PostLikeService {
     private final PostLikeRepository postLikeRepository;
     private final PostRepository postRepository;
+    private final NotificationService notificationService;
 
     @Override
     public boolean postLike(int postId, User user) {
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new RuntimeException("게시글이 없습니다."));
+                .orElseThrow(() -> new CommunityException(ExceptionMessage.POST_NOT_FOUND));
 
         PostLikeId postLikeId = new PostLikeId(user.getUserId(), postId);
 
@@ -34,6 +38,8 @@ public class PostLikeServiceImpl implements PostLikeService {
                     .post(post)
                     .build();
             postLikeRepository.save(postLike);
+
+            notificationService.notifyPostLiked(post.getUser().getUserId(), post.getPostId(), user.getNickname());
             return true; // 좋아요 추가됨
         }
     }

@@ -23,9 +23,6 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @Getter
-@Table(name = "chat_room", uniqueConstraints = {
-        @UniqueConstraint(name = "uk_chat_room_match", columnNames = "matchId")
-})
 public class ChatRoom extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

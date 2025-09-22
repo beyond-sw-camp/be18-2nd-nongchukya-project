@@ -18,7 +18,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Period;
 
 @Service
 @RequiredArgsConstructor
@@ -42,6 +44,11 @@ public class UserService {
         // 2. 비밀번호 암호화
         String encodedPassword = passwordEncoder.encode(dto.getPassword());
 
+        Integer calculatedAge = null;
+        if (dto.getBirthdate() != null) {
+            calculatedAge = Period.between(dto.getBirthdate(), LocalDate.now()).getYears();
+        }
+
         // 3. User 엔티티 생성 후 저장
         User user = User.builder()
                 .loginId(dto.getLoginId())
@@ -49,12 +56,13 @@ public class UserService {
                 .password(encodedPassword)
                 .nickname(dto.getNickname())
                 .name(dto.getName())
-                .age(dto.getAge())
+                .birthDate(dto.getBirthdate())
+                .age(calculatedAge)
                 .gender(dto.getGender())
                 .address(dto.getAddress())
                 .phoneNumber(dto.getPhoneNumber())
                 .dmOption(dto.getDmOption())
-                .status(dto.getStatus())
+                .status("ACTIVE")
                 .profileImage(dto.getProfileImage())
                 .role(Role.USER)
                 .build();
@@ -153,6 +161,20 @@ public class UserService {
         }
 
         user.deactivate();   // 상태 변경
+        userRepository.save(user);
+    }
+
+    @Transactional(readOnly = true)
+    public boolean isLoginIdAvailable(String loginId) {
+        return !userRepository.existsByLoginId(loginId);
+    }
+
+    @Transactional
+    public void resetPasswordByEmail(String email, String newPassword) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("해당 이메일로 가입된 사용자가 없습니다."));
+
+        user.updatePassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
     }
 

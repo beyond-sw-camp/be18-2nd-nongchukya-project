@@ -47,5 +47,9 @@ public class Notification {
     @Column(name = "read_at")
     private LocalDateTime readAt;
 
+    @Column(name = "post_id")
+    private int postId;
 
+    @Column(name="comment_id")
+    private int commentId;
 }

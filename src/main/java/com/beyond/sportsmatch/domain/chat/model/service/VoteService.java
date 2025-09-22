@@ -1,5 +1,8 @@
 package com.beyond.sportsmatch.domain.chat.model.service;
 
+import com.beyond.sportsmatch.common.exception.ChatException;
+import com.beyond.sportsmatch.common.exception.SportsMatchException;
+import com.beyond.sportsmatch.common.exception.message.ExceptionMessage;
 import com.beyond.sportsmatch.domain.chat.model.repository.ChatRoomRepository;
 import com.beyond.sportsmatch.domain.chat.model.repository.VoteRepository;
 import com.beyond.sportsmatch.domain.chat.model.repository.VoteResultRepository;
@@ -25,7 +28,10 @@ public class VoteService {
 
     public Vote createVote(int chatRoomId, String title, List<String> options) {
         ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId).orElseThrow(() ->
-                new EntityNotFoundException("채팅방을 찾을 수 없습니다."));
+                new ChatException(ExceptionMessage.CHATROOM_NOT_FOUND));
+        if(title == null || title.isBlank() || options == null || options.isEmpty()) {
+            throw new SportsMatchException(ExceptionMessage.VOTE_INVALID_INPUT);
+        }
         Vote vote = Vote.builder()
                 .chatRoom(chatRoom)
                 .title(title)
@@ -36,13 +42,15 @@ public class VoteService {
 
     public void castVote(int voteId, String selectedOption) {
         Vote vote = voteRepository.findById(voteId).orElseThrow(()->
-                new EntityNotFoundException("투표를 찾을 수 없습니다."));
-        UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext()
-                .getAuthentication()
-                .getPrincipal();
+                new ChatException(ExceptionMessage.VOTE_NOT_FOUND));
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            throw new ChatException(ExceptionMessage.UNAUTHORIZED);
+        }
+        var userDetails = (UserDetailsImpl) auth.getPrincipal();
         boolean alreadyVoted = voteResultRepository.existsByVoteAndUser(vote, userDetails.getUser());
         if (alreadyVoted) {
-            throw new IllegalStateException("이미 투표를 완료했습니다.");
+            throw new ChatException(ExceptionMessage.ALREADY_CASTED_VOTE);
         }
 
         VoteResult voteResult = VoteResult.builder()
@@ -57,7 +65,7 @@ public class VoteService {
 
     public Object getResults(int voteId) {
         Vote vote = voteRepository.findById(voteId).orElseThrow(()->
-                new EntityNotFoundException("투표를 찾을 수 없습니다."));
+                new ChatException(ExceptionMessage.VOTE_NOT_FOUND));
         List<VoteResult> results = voteResultRepository.findByVote(vote);
 
         return results.stream().collect(Collectors.groupingBy(VoteResult::getSelectedOption, Collectors.counting()));

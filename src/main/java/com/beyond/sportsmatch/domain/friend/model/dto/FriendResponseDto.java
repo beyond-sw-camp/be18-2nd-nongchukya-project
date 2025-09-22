@@ -9,7 +9,9 @@ import java.time.LocalDateTime;
 @Getter
 @ToString
 @RequiredArgsConstructor
-public class FriendRequestDto {
+public class FriendResponseDto {
+
+    private final int UserId;
 
     private final String nickname;
 

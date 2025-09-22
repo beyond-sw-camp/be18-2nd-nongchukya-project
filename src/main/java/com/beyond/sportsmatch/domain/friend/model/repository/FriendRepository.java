@@ -1,7 +1,7 @@
 package com.beyond.sportsmatch.domain.friend.model.repository;
 
 
-import com.beyond.sportsmatch.domain.friend.model.dto.FriendRequestDto;
+import com.beyond.sportsmatch.domain.friend.model.dto.FriendResponseDto;
 import com.beyond.sportsmatch.domain.friend.model.entity.Friend;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -11,15 +11,24 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface FriendRepository extends JpaRepository<Friend,Integer> {
-    @Query("SELECT new com.beyond.sportsmatch.domain.friend.model.dto.FriendRequestDto(u.nickname, u.profileImage, f.createdAt) " +
+    @Query("SELECT new com.beyond.sportsmatch.domain.friend.model.dto.FriendResponseDto(u.userId, u.nickname, u.profileImage, f.createdAt) " +
             "FROM Friend f JOIN f.friendUserId u " +
             "WHERE f.loginUserId.userId = :loginUserId")
-    List<FriendRequestDto> findFriendsByUserId(@Param("loginUserId") int loginUserId);
+    List<FriendResponseDto> findFriendsByUserId(@Param("loginUserId") int loginUserId);
 
     @Modifying
     @Transactional
     void deleteByLoginUserIdUserIdAndFriendUserIdUserId(int loginUserId, int friendUserId);
+
+    Optional<Friend> findByLoginUserIdUserIdAndFriendUserIdUserId(int loginUserId, int friendUserId);
+
+    boolean existsByLoginUserIdUserIdAndFriendUserIdUserId(int senderUserId, int receiverUserId);
+
+    @Query("SELECT CASE WHEN f.loginUserId.userId = :loginUserId THEN f.friendUserId.userId ELSE f.loginUserId.userId END " +
+            "FROM Friend f WHERE f.loginUserId.userId = :loginUserId OR f.friendUserId.userId = :loginUserId")
+    List<Integer> findFriendIdsByUserId(int loginUserId);
 }
