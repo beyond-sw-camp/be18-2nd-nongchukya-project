@@ -17,6 +17,7 @@ public enum ExceptionMessage {
     NOTIFICATION_NOT_FOUND("알림을  찾을 수 없습니다.",  HttpStatus.NOT_FOUND),
     FORBIDDEN_NOTIFICATION_DELETE("내 알림만 삭제할 수 있습니다.", HttpStatus.FORBIDDEN),
     LOGINID_NOT_FOUND("로그인 아이디가 없습니다.",   HttpStatus.NOT_FOUND),
+    VOTE_INVALID_INPUT("투표 제목과 옵션은 필수입니다.", HttpStatus.BAD_REQUEST),
     // community
     POST_NOT_FOUND("게시글을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
     POST_TITLE_BLANK("게시글은 제목을 입력해주세요.", HttpStatus.BAD_REQUEST),
