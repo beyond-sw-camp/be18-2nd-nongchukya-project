@@ -257,10 +257,11 @@ public class MatchServiceImpl implements MatchService {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
                 public void afterCommit() {
-                    String roomName = "%s %s".formatted(
+                    String roomName = "%s %s %s %s".formatted(
                             saved.getSport().getName(),
                             saved.getRegion(),
-                            saved.getMatchDate()
+                            saved.getMatchDate(),
+                            saved.getMatchTime()
                     );
                     Integer chatRoomId = chatService.createRoomForMatch(matchPk, roomName, userIdList);
 

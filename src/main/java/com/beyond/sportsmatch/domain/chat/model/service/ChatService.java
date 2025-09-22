@@ -1,7 +1,10 @@
 package com.beyond.sportsmatch.domain.chat.model.service;
 
 import com.beyond.sportsmatch.common.exception.ChatException;
+import com.beyond.sportsmatch.common.exception.SportsMatchException;
 import com.beyond.sportsmatch.common.exception.message.ExceptionMessage;
+import com.beyond.sportsmatch.domain.chat.model.dto.RoomDeletedEvent;
+import com.beyond.sportsmatch.domain.chat.model.dto.UserListResDto;
 import com.beyond.sportsmatch.domain.match.model.entity.MatchApplication;
 import com.beyond.sportsmatch.domain.match.model.entity.MatchCompleted;
 import com.beyond.sportsmatch.domain.match.model.repository.MatchCompletedRepository;
@@ -22,14 +25,15 @@ import com.beyond.sportsmatch.domain.chat.model.entity.Message;
 import com.beyond.sportsmatch.domain.chat.model.entity.MessageReadStatus;
 import com.beyond.sportsmatch.auth.model.service.UserDetailsImpl;
 import com.beyond.sportsmatch.domain.user.model.entity.User;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.Principal;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -48,6 +52,7 @@ public class ChatService {
     private final MatchRepository matchRepository;
     private final MatchCompletedRepository matchCompletedRepository;
     private final NotificationService notificationService;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     public void saveMessage(int chatRoomId, ChatDto message) {
         // 채팅방 조회
@@ -274,6 +279,7 @@ public class ChatService {
                 baseApp.getEndTime().format(DateTimeFormatter.ofPattern("HH:mm")),
                 remainUserIds
         );
+        applicationEventPublisher.publishEvent(new RoomDeletedEvent(roomId, "매칭이 취소되어 채팅방이 사라졌습니다."));
     }
 
     public int getOrCreatePrivateRoom(String otherNickname) {
@@ -350,5 +356,39 @@ public class ChatService {
         long ttl = 7 * 24 * 60 * 60 * 1000L;
         long expireAt = System.currentTimeMillis() + ttl;
         matchRedisService.addToZSet(key, value, expireAt);
+    }
+
+
+    public void assertAccessible(int roomId, UserDetailsImpl userDetails) {
+        ChatRoom chatRoom = chatRoomRepository.findById(roomId).orElseThrow(() ->
+                new SportsMatchException(ExceptionMessage.CHATROOM_NOT_FOUND));
+
+        int userId = userRepository.findByNickname(userDetails.getUser().getNickname()).orElseThrow(() ->
+                new SportsMatchException(ExceptionMessage.USER_NOT_FOUND)).getUserId();
+
+        boolean user = chatParticipantRepository.existsByChatRoom_ChatRoomIdAndUser_UserId(roomId, userId);
+        if(!user){ throw new SportsMatchException(ExceptionMessage.NOT_CHAT_MEMBER);}
+    }
+
+    public List<UserListResDto> getUsersNick(int roomId, UserDetailsImpl userDetails) {
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            throw new ChatException(ExceptionMessage.UNAUTHORIZED);
+        }
+        boolean user = chatParticipantRepository.existsByChatRoom_ChatRoomIdAndUser_UserId(roomId,
+                userDetails.getUser().getUserId());
+        if(!user){ throw new SportsMatchException(ExceptionMessage.NOT_CHAT_MEMBER);}
+
+        List<JoinedChatRoom> chatParticipants = chatParticipantRepository.findAllByChatRoom_ChatRoomId(roomId);
+        List<UserListResDto> userListResDtos = new ArrayList<>();
+        for(JoinedChatRoom joinedChatRoom : chatParticipants){
+            userListResDtos.add(
+                    UserListResDto.builder()
+                            .userID(joinedChatRoom.getUser().getUserId())
+                            .nickname(joinedChatRoom.getUser().getNickname())
+                            .build()
+            );
+        }
+        return userListResDtos;
     }
 }

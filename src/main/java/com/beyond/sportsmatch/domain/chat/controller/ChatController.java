@@ -1,13 +1,17 @@
 package com.beyond.sportsmatch.domain.chat.controller;
 
+import com.beyond.sportsmatch.auth.model.service.UserDetailsImpl;
 import com.beyond.sportsmatch.common.dto.BaseResponseDto;
 import com.beyond.sportsmatch.domain.chat.model.dto.ChatDto;
 import com.beyond.sportsmatch.domain.chat.model.dto.ChatRoomListResDto;
 import com.beyond.sportsmatch.domain.chat.model.dto.MyChatListResDto;
+import com.beyond.sportsmatch.domain.chat.model.dto.UserListResDto;
 import com.beyond.sportsmatch.domain.chat.model.service.ChatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -78,6 +83,18 @@ public class ChatController {
     public ResponseEntity<BaseResponseDto<String>> leaveGroup(@PathVariable int roomId) {
         chatService.leaveGroupChatRoom(roomId);
         return ResponseEntity.ok(new BaseResponseDto<>(HttpStatus.OK, "나가기에 성공하였습니다."));
+    }
+
+    @GetMapping("/{roomId}/exists")
+    public ResponseEntity<BaseResponseDto<String>> existsRoom(@PathVariable int roomId, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        chatService.assertAccessible(roomId, userDetails);
+        return ResponseEntity.ok(new BaseResponseDto<>(HttpStatus.OK, "채팅방이 존재합니다."));
+    }
+
+    @GetMapping("/{roomId}/users")
+    public ResponseEntity<BaseResponseDto<UserListResDto>>  getUsers(@PathVariable int roomId, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        List<UserListResDto> userListResDtos = chatService.getUsersNick(roomId, userDetails);
+        return ResponseEntity.ok(new BaseResponseDto<>(HttpStatus.OK, userListResDtos));
     }
 
 

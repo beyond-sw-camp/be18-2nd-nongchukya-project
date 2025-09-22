@@ -1,6 +1,7 @@
 package com.beyond.sportsmatch.domain.chat.model.service;
 
 import com.beyond.sportsmatch.common.exception.ChatException;
+import com.beyond.sportsmatch.common.exception.SportsMatchException;
 import com.beyond.sportsmatch.common.exception.message.ExceptionMessage;
 import com.beyond.sportsmatch.domain.chat.model.repository.ChatRoomRepository;
 import com.beyond.sportsmatch.domain.chat.model.repository.VoteRepository;
@@ -28,6 +29,9 @@ public class VoteService {
     public Vote createVote(int chatRoomId, String title, List<String> options) {
         ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId).orElseThrow(() ->
                 new ChatException(ExceptionMessage.CHATROOM_NOT_FOUND));
+        if(title == null || title.isBlank() || options == null || options.isEmpty()) {
+            throw new SportsMatchException(ExceptionMessage.VOTE_INVALID_INPUT);
+        }
         Vote vote = Vote.builder()
                 .chatRoom(chatRoom)
                 .title(title)
