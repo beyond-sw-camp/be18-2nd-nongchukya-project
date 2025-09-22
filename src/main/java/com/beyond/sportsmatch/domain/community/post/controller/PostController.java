@@ -49,6 +49,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -70,13 +71,14 @@ public class PostController {
         int totalCount = postService.getTotalCount(category);
         List<PostsResponseDto> posts = postService.getPosts(page, numOfRows, category, sortBy, sortDir);
 
-        if(!posts.isEmpty()){
-            return ResponseEntity.ok(
-                    new ItemsResponseDto<>(HttpStatus.OK, posts, page, totalCount)
-            );
-        }else{
-            throw new CommunityException(ExceptionMessage.POST_NOT_FOUND);
+        // 빈 리스트 처리
+        if (posts == null) {
+            posts = new ArrayList<>();
         }
+
+        return ResponseEntity.ok(
+                new ItemsResponseDto<>(HttpStatus.OK, posts, page, totalCount)
+        );
     }
 
     @GetMapping("/posts/{postId}")
