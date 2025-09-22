@@ -56,8 +56,8 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "api/v1/auth/**",
-                                "auth/kakao/callback",
+                                "/api/v1/auth/**",
+                                "/auth/kakao/callback",
                                 "/ws/**",
                                 "/api/v1/sse/**"
                         ).permitAll()
