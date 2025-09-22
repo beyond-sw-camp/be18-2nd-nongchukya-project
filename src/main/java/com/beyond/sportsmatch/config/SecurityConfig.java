@@ -52,7 +52,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
-                .cors(cors -> cors.configurationSource(getCorsConfigurationSource()))
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
@@ -72,46 +72,17 @@ public class SecurityConfig {
         return http.build();
     }
 
-//    @Bean
-//    CorsConfigurationSource corsConfigurationSource(){
-//        CorsConfiguration configuration = new CorsConfiguration();
-//        configuration.setAllowedOrigins(List.of("http://localhost:3000"));
-//        configuration.setAllowedMethods(List.of("*")); //모든 HTTP메서드 허용
-//        configuration.setAllowedHeaders(List.of("*")); //모든 헤더값 허용
-//        configuration.setAllowCredentials(true); //자격증명허용
-//
-//        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-//        source.registerCorsConfiguration("/**", configuration); //모든 url에 패턴에 대해 cors 허용 설정
-//        return source;
-//    }
+    @Bean
+    CorsConfigurationSource corsConfigurationSource(){
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(List.of("http://localhost:3000"));
+        configuration.setAllowedMethods(List.of("*")); //모든 HTTP메서드 허용
+        configuration.setAllowedHeaders(List.of("*")); //모든 헤더값 허용
+        configuration.setAllowCredentials(true); //자격증명허용
 
-    private static CorsConfigurationSource getCorsConfigurationSource() {
-        return (request) -> {
-            // CorsConfiguration 객체를 생성해서 CORS 설정을 한다.
-            CorsConfiguration corsConfiguration = new CorsConfiguration();
-
-            // CORS 요청에서 허용할 출처를 지정한다.
-//            corsConfiguration.setAllowedOrigins(Arrays.asList("http://localhost:5173", "http://localhost:5174"));
-            // 보안적으로 지양하는게 좋음(다 허용해주기 때문에)
-            corsConfiguration.setAllowedOriginPatterns(List.of("*"));
-
-            // CORS 요청에서 허용할 HTTP 메소드를 지정한다.
-            corsConfiguration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-
-            // 클라이언트가 요청 시 사용할 수 있는 헤더를 지정한다.
-            corsConfiguration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
-
-            // 클라이언트가 응답에서 접근할 수 있는 헤더를 지정한다.
-            corsConfiguration.setExposedHeaders(List.of("Authorization"));
-
-            // 자격 증명(쿠키, 세션) 허용 여부를 설정한다.
-            corsConfiguration.setAllowCredentials(true);
-
-            // CORS Preflight 요청을 브라우저가 캐싱하는 시간(초 단위)을 설정한다.
-            corsConfiguration.setMaxAge(3600L);
-
-            return corsConfiguration;
-        };
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration); //모든 url에 패턴에 대해 cors 허용 설정
+        return source;
     }
 
 }
