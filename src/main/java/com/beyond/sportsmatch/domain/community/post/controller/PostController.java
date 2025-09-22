@@ -64,9 +64,11 @@ public class PostController {
             @RequestParam int page,
             @RequestParam int numOfRows,
             @RequestParam(defaultValue = "latest") String sortBy,
-            @RequestParam(defaultValue = "desc") String sortDir) {
-        int totalCount = postService.getTotalCount();
-        List<PostsResponseDto> posts = postService.getPosts(page, numOfRows, sortBy, sortDir);
+            @RequestParam(defaultValue = "desc") String sortDir,
+            @RequestParam(required = false) String category) {
+
+        int totalCount = postService.getTotalCount(category);
+        List<PostsResponseDto> posts = postService.getPosts(page, numOfRows, category, sortBy, sortDir);
 
         if(!posts.isEmpty()){
             return ResponseEntity.ok(
@@ -90,7 +92,7 @@ public class PostController {
     }
 
     @PostMapping("/posts")
-    public ResponseEntity<PostResponseDto> createPost(
+    public ResponseEntity<BaseResponseDto<PostResponseDto>> createPost(
             @RequestPart("postRequestDto") PostRequestDto postRequestDto,
             @RequestPart(value = "files", required = false) List<MultipartFile> files,
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
@@ -127,12 +129,13 @@ public class PostController {
                 List.of(), // 댓글은 생성 직후 없으므로 빈 리스트
                 attachments,
                 0,
-                false
+                false,
+                true
         );
 
         return ResponseEntity
                 .created(URI.create("/api/v1/community/posts/" + savedPost.getPostId()))
-                .body(postResponseDto);
+                .body(new BaseResponseDto<>(HttpStatus.CREATED, postResponseDto));
     }
 
     @PutMapping("/posts/{postId}")

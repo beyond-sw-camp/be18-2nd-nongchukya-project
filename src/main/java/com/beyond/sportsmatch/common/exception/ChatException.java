@@ -8,17 +8,17 @@ import java.io.Serial;
 
 @Getter
 public class ChatException extends RuntimeException {
-  @Serial
-  private static final long serialVersionUID = 1L;
+    @Serial
+    private static final long serialVersionUID = 1L;
 
-  private final String type;
+    private final String type;
 
-  private final HttpStatus status;
+    private final HttpStatus status;
 
-  public ChatException(ExceptionMessage message) {
-    super(message.getMessage());
+    public ChatException(ExceptionMessage message) {
+        super(message.getMessage());
 
-    this.type = message.name();
-    this.status = message.getStatus();
-  }
+        this.type = message.name();
+        this.status = message.getStatus();
+    }
 }

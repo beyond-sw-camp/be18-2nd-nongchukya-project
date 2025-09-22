@@ -11,4 +11,3 @@ public class ReportRequestDto {
     private String description;
     private String evidenceUrl; // 첨부파일 URL
 }
-
