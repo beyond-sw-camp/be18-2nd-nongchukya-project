@@ -7,6 +7,7 @@ import com.beyond.sportsmatch.domain.community.post.model.repository.PostReposit
 import com.beyond.sportsmatch.domain.community.post.model.entity.Post;
 import com.beyond.sportsmatch.domain.community.post.model.entity.PostLike;
 import com.beyond.sportsmatch.domain.community.post.model.entity.PostLikeId;
+import com.beyond.sportsmatch.domain.notification.model.service.NotificationService;
 import com.beyond.sportsmatch.domain.user.model.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 public class PostLikeServiceImpl implements PostLikeService {
     private final PostLikeRepository postLikeRepository;
     private final PostRepository postRepository;
+    private final NotificationService notificationService;
 
     @Override
     public boolean postLike(int postId, User user) {
@@ -36,6 +38,8 @@ public class PostLikeServiceImpl implements PostLikeService {
                     .post(post)
                     .build();
             postLikeRepository.save(postLike);
+
+            notificationService.notifyPostLiked(post.getUser().getUserId(), post.getPostId(), user.getNickname());
             return true; // 좋아요 추가됨
         }
     }

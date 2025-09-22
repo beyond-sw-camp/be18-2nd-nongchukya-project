@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface CommentRepository extends JpaRepository<Comment, Integer> {
     // 루트 댓글 + 대댓글 재귀 조회
@@ -22,4 +23,6 @@ public interface CommentRepository extends JpaRepository<Comment, Integer> {
     // 특정 댓글의 자식 댓글 조회
     List<Comment> findByParentComment_CommentId(int parentId);
 
+    @Query("select u.loginId from User u where u.userId = :userId")
+    Optional<String> findLoginIdByCommentId(@Param("userId") int commentOwnerId);
 }
