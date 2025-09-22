@@ -11,6 +11,8 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class FriendResponseDto {
 
+    private final int UserId;
+
     private final String nickname;
 
     private final String profileImage;
