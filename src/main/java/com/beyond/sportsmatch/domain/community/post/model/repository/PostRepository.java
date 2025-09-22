@@ -1,5 +1,6 @@
 package com.beyond.sportsmatch.domain.community.post.model.repository;
 
+import com.beyond.sportsmatch.domain.community.post.model.dto.PostResponseDto;
 import com.beyond.sportsmatch.domain.community.post.model.dto.PostsResponseDto;
 import com.beyond.sportsmatch.domain.community.post.model.dto.SearchPostsResponseDto;
 import com.beyond.sportsmatch.domain.community.post.model.entity.Post;
@@ -12,6 +13,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface PostRepository extends JpaRepository<Post,Integer> {
@@ -225,4 +227,12 @@ public interface PostRepository extends JpaRepository<Post,Integer> {
 
     @Query("select u.loginId from User u where u.userId = :userId")
     Optional<String> findLoginIdByUserId(@Param("userId") Integer userId);
+
+    Post findFirstByPostIdLessThanOrderByPostIdDesc(int postId);
+
+    Post findFirstByPostIdGreaterThanOrderByPostIdAsc(int postId);
+
+    Post findFirstByCategory_CategoryNameAndPostIdLessThanOrderByPostIdDesc(String categoryName, int postId);
+
+    Post findFirstByCategory_CategoryNameAndPostIdGreaterThanOrderByPostIdAsc(String categoryName, int postId);
 }

@@ -1,5 +1,6 @@
 package com.beyond.sportsmatch.domain.community.post.model.service;
 
+import com.beyond.sportsmatch.domain.community.post.model.dto.NeighborPostDto;
 import com.beyond.sportsmatch.domain.community.post.model.dto.PostRequestDto;
 import com.beyond.sportsmatch.domain.community.post.model.dto.PostResponseDto;
 import com.beyond.sportsmatch.domain.community.post.model.dto.PostsResponseDto;
@@ -12,6 +13,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public interface PostService {
@@ -34,4 +36,6 @@ public interface PostService {
     Post createPost(PostRequestDto postRequestDto, List<MultipartFile> files, User user, Category category);
 
     Page<SearchPostsResponseDto> searchPosts(String type, String keyword, int page, int numOfRows, String sortBy, String sortDir);
+
+    Map<String, NeighborPostDto> getNeighborPosts(int postId, User user, String category);
 }

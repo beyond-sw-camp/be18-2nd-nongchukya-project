@@ -5,6 +5,7 @@ import com.beyond.sportsmatch.common.exception.message.ExceptionMessage;
 import com.beyond.sportsmatch.domain.community.comment.model.dto.CommentResponseDto;
 import com.beyond.sportsmatch.domain.community.comment.model.service.CommentService;
 import com.beyond.sportsmatch.domain.community.post.model.dto.AttachmentResponseDto;
+import com.beyond.sportsmatch.domain.community.post.model.dto.NeighborPostDto;
 import com.beyond.sportsmatch.domain.community.post.model.dto.PostRequestDto;
 import com.beyond.sportsmatch.domain.community.post.model.dto.PostResponseDto;
 import com.beyond.sportsmatch.domain.community.post.model.dto.PostsResponseDto;
@@ -31,10 +32,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -355,5 +357,31 @@ public class PostServiceImpl implements PostService {
             }
             default -> throw new CommunityException(ExceptionMessage.INVALID_SEARCH_TYPE);
         };
+    }
+
+    @Override
+    public Map<String, NeighborPostDto> getNeighborPosts(int postId, User user, String categoryName) {
+        Post previous;
+        Post next;
+
+        if (categoryName == null || categoryName.isEmpty()) {
+            // 전체 게시판
+            previous = postRepository.findFirstByPostIdLessThanOrderByPostIdDesc(postId);
+            next = postRepository.findFirstByPostIdGreaterThanOrderByPostIdAsc(postId);
+        } else {
+            // 특정 카테고리
+            previous = postRepository.findFirstByCategory_CategoryNameAndPostIdLessThanOrderByPostIdDesc(categoryName, postId);
+            next = postRepository.findFirstByCategory_CategoryNameAndPostIdGreaterThanOrderByPostIdAsc(categoryName, postId);
+        }
+
+        Map<String, NeighborPostDto> result = new HashMap<>();
+        if (previous != null) {
+            result.put("previous", new NeighborPostDto(previous.getPostId(), previous.getTitle()));
+        }
+        if (next != null) {
+            result.put("next", new NeighborPostDto(next.getPostId(), next.getTitle()));
+        }
+
+        return result;
     }
 }
