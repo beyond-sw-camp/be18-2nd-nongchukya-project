@@ -5,11 +5,13 @@ import com.beyond.sportsmatch.common.exception.CommunityException;
 import com.beyond.sportsmatch.common.exception.message.ExceptionMessage;
 import com.beyond.sportsmatch.domain.community.comment.model.dto.CommentRequestDto;
 import com.beyond.sportsmatch.domain.community.comment.model.dto.CommentResponseDto;
+import com.beyond.sportsmatch.domain.community.comment.model.repository.CommentRepository;
 import com.beyond.sportsmatch.domain.community.comment.model.service.CommentService;
 import com.beyond.sportsmatch.domain.community.comment.model.entity.Comment;
 import com.beyond.sportsmatch.domain.community.post.model.service.PostService;
 import com.beyond.sportsmatch.domain.community.post.model.entity.Post;
 import com.beyond.sportsmatch.auth.model.service.UserDetailsImpl;
+import com.beyond.sportsmatch.domain.notification.model.service.NotificationService;
 import com.beyond.sportsmatch.domain.user.model.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -49,6 +51,9 @@ import org.springframework.web.bind.annotation.RestController;
 public class CommentController {
     private final CommentService commentService;
     private final PostService postService;
+    private final NotificationService notificationService;
+    private final NotificationService notificationSseService;
+    private final CommentRepository commentRepository;
 
     @PostMapping("/comments")
     public ResponseEntity<CommentResponseDto> createComment(
@@ -62,6 +67,7 @@ public class CommentController {
 
         Comment comment = commentService.save(user, post, null, commentRequestDto.getContent());
 
+        notificationService.notifyPostCommented(post.getUser().getUserId(), post.getPostId(), comment.getCommentId(), user.getNickname());
         return ResponseEntity.ok(CommentResponseDto.from(comment));
     }
 
@@ -79,6 +85,8 @@ public class CommentController {
         Comment parentComment = commentService.getCommentById(commentId);
 
         Comment reply = commentService.save(user, post, parentComment, commentRequestDto.getContent());
+
+        notificationService.notifyCommentReplied(parentComment.getUser().getUserId(), postId, reply.getCommentId(), user.getNickname());
 
         return ResponseEntity.ok(CommentResponseDto.from(reply));
     }

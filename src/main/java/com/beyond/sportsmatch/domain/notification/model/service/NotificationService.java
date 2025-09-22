@@ -3,6 +3,8 @@ package com.beyond.sportsmatch.domain.notification.model.service;
 import com.beyond.sportsmatch.auth.model.service.UserDetailsImpl;
 import com.beyond.sportsmatch.common.exception.ChatException;
 import com.beyond.sportsmatch.common.exception.message.ExceptionMessage;
+import com.beyond.sportsmatch.domain.community.comment.model.repository.CommentRepository;
+import com.beyond.sportsmatch.domain.community.post.model.repository.PostRepository;
 import com.beyond.sportsmatch.domain.notification.model.entity.Notification;
 import com.beyond.sportsmatch.domain.notification.model.repository.NotificationRepository;
 import com.beyond.sportsmatch.domain.user.model.repository.UserRepository;
@@ -24,6 +26,8 @@ public class NotificationService {
     private final NotificationRepository notificationRepository;
     private final NotificationSseService notificationSseService;
     private final UserRepository userRepository;
+    private final PostRepository postRepository;
+    private final CommentRepository commentRepository;
 
     public List<Notification> getNotifications(UserDetailsImpl userDetails) {
         if(userDetails == null) {
@@ -42,6 +46,7 @@ public class NotificationService {
         return notificationRepository.countByUserIdAndReadAtIsNull(userId);
     }
 
+    @Transactional
     public int readAll(UserDetailsImpl userDetails) {
         if(userDetails == null){
             throw new ChatException(ExceptionMessage.UNAUTHORIZED);
@@ -50,6 +55,7 @@ public class NotificationService {
         return notificationRepository.markAllReadByUserId(userId, LocalDateTime.now());
     }
 
+    @Transactional
     public void deleteNotification(int notificationId, UserDetailsImpl userDetails) {
         if(userDetails == null){
             throw new ChatException(ExceptionMessage.UNAUTHORIZED);
@@ -155,6 +161,78 @@ public class NotificationService {
         }
     }
 
+    // 게시글 좋아요
+    @Transactional
+    public void notifyPostLiked(int postOwnerId, int postId, String likerNickname) {
+        Notification notif = Notification.builder()
+                .userId(postOwnerId)
+                .type("LIKE")
+                .title("게시글 좋아요")
+                .body(likerNickname + "님이 회원님의 게시글을 좋아합니다.")
+                .postId(postId)
+                .createdAt(LocalDateTime.now())
+                .build();
 
+        LocalDateTime now = LocalDateTime.now();
+        Map<String, Object> payload = Map.of(
+                "id", notif.getPostId(),
+                "type", notif.getType(),
+                "title", notif.getTitle(),
+                "body", notif.getBody(),
+                "createdAt", now.toString()
+        );
+        notificationRepository.save(notif);
+        notificationSseService.send(postRepository.findLoginIdByUserId(postOwnerId).orElseThrow(), "toggle-like", payload);
+    }
 
+    // 게시글 댓글
+    @Transactional
+    public void notifyPostCommented(int postOwnerId, int postId, int commentId, String commenterNickname) {
+        Notification notif = Notification.builder()
+                .userId(postOwnerId)
+                .type("COMMENT")
+                .title("게시글 댓글")
+                .body(commenterNickname + "님이 회원님의 게시글에 댓글을 남겼습니다.")
+                .postId(postId)
+                .commentId(commentId)
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        LocalDateTime now = LocalDateTime.now();
+        Map<String, Object> payload = Map.of(
+                "id", notif.getPostId(),
+                "type", notif.getType(),
+                "title", notif.getTitle(),
+                "body", notif.getBody(),
+                "createdAt", now.toString()
+        );
+        notificationRepository.save(notif);
+        notificationSseService.send(postRepository.findLoginIdByUserId(postOwnerId).orElseThrow(), "post-commented", payload);
+
+    }
+
+    // 댓글 답글
+    @Transactional
+    public void notifyCommentReplied(int commentOwnerId, int postId, int replyId, String replierNickname) {
+        Notification notif = Notification.builder()
+                .userId(commentOwnerId)
+                .type("REPLY")
+                .title("댓글 답글")
+                .body(replierNickname + "님이 회원님의 댓글에 답글을 남겼습니다.")
+                .postId(postId)
+                .commentId(replyId)
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        LocalDateTime now = LocalDateTime.now();
+        Map<String, Object> payload = Map.of(
+                "id", notif.getPostId(),
+                "type", notif.getType(),
+                "title", notif.getTitle(),
+                "body", notif.getBody(),
+                "createdAt", now.toString()
+        );
+        notificationRepository.save(notif);
+        notificationSseService.send(commentRepository.findLoginIdByCommentId(commentOwnerId).orElseThrow(), "comment-replied", payload);
+    }
 }

@@ -222,4 +222,7 @@ public interface PostRepository extends JpaRepository<Post,Integer> {
             "WHERE (:category IS NULL OR p.category.categoryName = :category) " +
             "GROUP BY p.postId, p.title, p.user.nickname, p.createdAt, p.viewCount, p.category.categoryName")
     Page<PostsResponseDto> findByCategory(@Param("category") String category, Pageable pageable);
+
+    @Query("select u.loginId from User u where u.userId = :userId")
+    Optional<String> findLoginIdByUserId(@Param("userId") Integer userId);
 }
