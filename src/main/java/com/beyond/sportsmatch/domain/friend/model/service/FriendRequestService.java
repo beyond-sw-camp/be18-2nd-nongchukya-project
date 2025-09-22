@@ -14,7 +14,7 @@ public interface FriendRequestService {
 
     void deleteReceivedFriendRequest(int receiverUserId, int senderUserId);
 
-    void sendFriendRequest(int senderUserId, String receiverUserNickname);
+    void sendFriendRequest(int senderUserId, int receiverUserId);
 
     void acceptFriendRequest(int senderUserId, int receiverUserId);
 }

@@ -27,4 +27,8 @@ public interface FriendRepository extends JpaRepository<Friend,Integer> {
     Optional<Friend> findByLoginUserIdUserIdAndFriendUserIdUserId(int loginUserId, int friendUserId);
 
     boolean existsByLoginUserIdUserIdAndFriendUserIdUserId(int senderUserId, int receiverUserId);
+
+    @Query("SELECT CASE WHEN f.loginUserId.userId = :loginUserId THEN f.friendUserId.userId ELSE f.loginUserId.userId END " +
+            "FROM Friend f WHERE f.loginUserId.userId = :loginUserId OR f.friendUserId.userId = :loginUserId")
+    List<Integer> findFriendIdsByUserId(int loginUserId);
 }

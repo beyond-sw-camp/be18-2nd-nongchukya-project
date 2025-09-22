@@ -48,4 +48,7 @@ public interface FriendRequestRepository extends JpaRepository<FriendRequest, In
             "WHERE fr.senderUserId.userId = :senderUserId " +
             "AND fr.receiverUserId.userId = :receiverUserId")
     boolean existsBySenderUserIdAndReceiverUserId(@Param("senderUserId") int senderUserId, @Param("receiverUserId") int receiverUserId);
+
+    @Query("SELECT fr.receiverUserId.userId FROM FriendRequest fr WHERE fr.senderUserId.userId = :senderUserId")
+    List<Integer> findReceiverIdsBySenderId(int senderUserId);
 }
