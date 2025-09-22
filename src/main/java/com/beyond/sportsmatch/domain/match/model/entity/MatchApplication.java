@@ -5,12 +5,15 @@ import com.beyond.sportsmatch.domain.user.model.entity.Sport;
 import com.beyond.sportsmatch.domain.user.model.entity.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -52,6 +55,16 @@ public class MatchApplication {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "applicant_id")
     private User applicantId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private MatchStatus status;
+
+    // 처음 생성 시 status를 WAITING으로 자동 설정
+    @PrePersist
+    public void prePersist() {
+        this.status = this.status == null ? MatchStatus.WAITING : this.status;
+    }
 
     public void setMatchApplication(MatchApplicationRequestDto matchApplicationRequestDto, User user, Sport sport) {
         this.sport = sport;

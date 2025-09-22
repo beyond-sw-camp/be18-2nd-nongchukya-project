@@ -21,6 +21,7 @@ import java.time.format.DateTimeFormatter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MatchResponseDto {
+    private int id;
 
     private String sport;
 
@@ -39,6 +40,7 @@ public class MatchResponseDto {
     public static MatchResponseDto fromEntity(MatchApplication application, Long waitingCount) {
         MatchResponseDto dto = new MatchResponseDto();
 
+        dto.setId(application.getMatchApplicationId());
         dto.setSport(application.getSport().getName());
         dto.setRegion(application.getRegion());
         dto.setMatchDate(application.getMatchDate());
