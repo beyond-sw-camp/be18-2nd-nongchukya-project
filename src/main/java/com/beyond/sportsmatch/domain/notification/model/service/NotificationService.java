@@ -1,12 +1,17 @@
 package com.beyond.sportsmatch.domain.notification.model.service;
 
 import com.beyond.sportsmatch.auth.model.service.UserDetailsImpl;
+import com.beyond.sportsmatch.common.dto.ItemsResponseDto;
 import com.beyond.sportsmatch.common.exception.ChatException;
 import com.beyond.sportsmatch.common.exception.message.ExceptionMessage;
 import com.beyond.sportsmatch.domain.notification.model.entity.Notification;
 import com.beyond.sportsmatch.domain.notification.model.repository.NotificationRepository;
 import com.beyond.sportsmatch.domain.user.model.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,12 +30,21 @@ public class NotificationService {
     private final NotificationSseService notificationSseService;
     private final UserRepository userRepository;
 
-    public List<Notification> getNotifications(UserDetailsImpl userDetails) {
+    public ItemsResponseDto<Notification> getNotifications(UserDetailsImpl userDetails, int page, int size) {
         if(userDetails == null) {
             throw new ChatException(ExceptionMessage.UNAUTHORIZED);
         }
+        int safePage = Math.max(0, page);
+        int safeSize = Math.max(1, Math.min(size, 100));
         int userId = userDetails.getUser().getUserId();
-        return notificationRepository.findByUserIdOrderByCreatedAtDesc(userId);
+        var pageable = PageRequest.of(safePage, safeSize, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<Notification> p = notificationRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable);
+        return new ItemsResponseDto<>(
+                HttpStatus.OK,
+                p.getContent(),
+                p.getNumber(),
+                (int) p.getTotalElements()
+        );
     }
 
     public int getUnreadCount(UserDetailsImpl userDetails) {
