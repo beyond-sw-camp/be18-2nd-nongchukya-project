@@ -34,4 +34,6 @@ public class PostResponseDto {
     private final int likeCount;
 
     private final boolean liked;
+
+    private final boolean isAuthor;
 }
