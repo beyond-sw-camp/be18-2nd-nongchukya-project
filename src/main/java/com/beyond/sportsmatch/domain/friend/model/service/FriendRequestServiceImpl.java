@@ -48,12 +48,12 @@ public class FriendRequestServiceImpl implements FriendRequestService {
 
     @Override
     public void deleteReceivedFriendRequest(int receiverUserId, int senderUserId) {
-        boolean exists = friendRequestRepository.existsBySenderUserIdAndReceiverUserId(receiverUserId, senderUserId);
+        boolean exists = friendRequestRepository.existsBySenderUserIdAndReceiverUserId(senderUserId, receiverUserId);
 
         if (!exists) {
             throw new SportsMatchException(ExceptionMessage.REQUEST_NOT_FOUND);
         }
-        friendRequestRepository.deleteByReceiverUserIdAndSenderUserId(receiverUserId, senderUserId);
+        friendRequestRepository.deleteBySenderUserIdAndReceiverUserId(senderUserId, receiverUserId);
     }
 
     @Override

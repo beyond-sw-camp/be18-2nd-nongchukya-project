@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Collections;
 import java.util.List;
 // 컨트롤러 꼭 수정
 @Slf4j
@@ -107,10 +108,12 @@ public class FriendController {
     }
 
     @GetMapping("/users/search")
-    public ResponseEntity<BaseResponseDto<UserResponseDto>> getSearchUsersByNickname(@RequestParam String nickname, @AuthenticationPrincipal UserDetailsImpl loginUser) {
+    public ResponseEntity<BaseResponseDto<UserResponseDto>> getSearchUsersByNickname(@RequestParam(required = false) String nickname, @AuthenticationPrincipal UserDetailsImpl loginUser) {
 
         int loginUserId = loginUser.getUser().getUserId();
-
+        if (nickname == null || nickname.isBlank()) {
+            return ResponseEntity.ok(new BaseResponseDto<>(HttpStatus.OK, Collections.emptyList()));
+        }
         List<UserResponseDto> users = userService.getSearchUsersByNickname(nickname, loginUserId);
 
         return ResponseEntity.ok(new BaseResponseDto<>(HttpStatus.OK, users));
