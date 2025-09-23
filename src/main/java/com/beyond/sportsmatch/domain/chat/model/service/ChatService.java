@@ -282,6 +282,24 @@ public class ChatService {
         applicationEventPublisher.publishEvent(new RoomDeletedEvent(roomId, "매칭이 취소되어 채팅방이 사라졌습니다."));
     }
 
+    public void leavePrivateChatRoom(int roomId) {
+        ChatRoom chatRoom = chatRoomRepository.findById(roomId).orElseThrow(()-> new ChatException(ExceptionMessage.CHATROOM_NOT_FOUND));
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            throw new ChatException(ExceptionMessage.UNAUTHORIZED);
+        }
+        var userDetails = (UserDetailsImpl) auth.getPrincipal();
+        User user = userRepository.findByNickname(userDetails.getUser().getNickname()).orElseThrow(()->
+                new ChatException(ExceptionMessage.USER_NOT_FOUND));;
+        if(chatRoom.getIsGroupChat().equals("Y")){
+            throw new ChatException(ExceptionMessage.CHATROOM_NOT_PRIVATE);
+        }
+        JoinedChatRoom joinUser = chatParticipantRepository.findByChatRoomAndUser(chatRoom, user).orElseThrow(()->
+                new ChatException(ExceptionMessage.USER_NOT_FOUND));
+        chatParticipantRepository.delete(joinUser);
+        chatRoomRepository.delete(chatRoom);
+    }
+
     public int getOrCreatePrivateRoom(String otherNickname) {
         var auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated()) {
