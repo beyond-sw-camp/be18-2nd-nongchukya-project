@@ -84,6 +84,12 @@ public class ChatController {
         chatService.leaveGroupChatRoom(roomId);
         return ResponseEntity.ok(new BaseResponseDto<>(HttpStatus.OK, "나가기에 성공하였습니다."));
     }
+    // 1대1 채팅방 나가기
+    @DeleteMapping("/private/{roomId}/leave")
+    public ResponseEntity<BaseResponseDto<String>> leavePrivate(@PathVariable int roomId) {
+        chatService.leavePrivateChatRoom(roomId);
+        return ResponseEntity.ok(new BaseResponseDto<>(HttpStatus.OK, "나가기에 성공하였습니다."));
+    }
 
     @GetMapping("/{roomId}/exists")
     public ResponseEntity<BaseResponseDto<String>> existsRoom(@PathVariable int roomId, @AuthenticationPrincipal UserDetailsImpl userDetails) {
