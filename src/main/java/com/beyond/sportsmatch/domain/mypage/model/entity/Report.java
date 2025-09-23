@@ -27,8 +27,6 @@ public class Report extends BaseTimeEntity {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "evidence_url", length = 500)
-    private String evidenceUrl;  // 첨부 파일 경로 (URL)
 
     @Column(nullable = false)
     private String status = "PENDING"; // 기본값

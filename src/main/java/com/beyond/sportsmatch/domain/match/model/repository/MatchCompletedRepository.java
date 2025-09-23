@@ -1,8 +1,6 @@
 package com.beyond.sportsmatch.domain.match.model.repository;
 
 import com.beyond.sportsmatch.domain.match.model.entity.MatchCompleted;
-import com.beyond.sportsmatch.domain.user.model.entity.User;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

@@ -10,6 +10,7 @@ public enum ExceptionMessage {
     // chat
     CHATROOM_NOT_FOUND("채팅방을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
     CHATROOM_NOT_GROUP("그룹 채팅방이 아닙니다.", HttpStatus.BAD_REQUEST),
+    CHATROOM_NOT_PRIVATE("1대1 채팅방이 아닙니다.", HttpStatus.BAD_REQUEST),
     NOT_CHAT_MEMBER("해당 채팅방의 참여자가 아닙니다.", HttpStatus.FORBIDDEN),
     COMPLETED_MATCH_NOT_FOUND("성사된 매칭이 없습니다.",  HttpStatus.NOT_FOUND),
     VOTE_NOT_FOUND("투표를 찾을 수 없습니다.",  HttpStatus.NOT_FOUND),
