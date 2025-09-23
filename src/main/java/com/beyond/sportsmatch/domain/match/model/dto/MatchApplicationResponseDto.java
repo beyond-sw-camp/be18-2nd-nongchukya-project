@@ -1,6 +1,7 @@
 package com.beyond.sportsmatch.domain.match.model.dto;
 
 import com.beyond.sportsmatch.domain.match.model.entity.MatchApplication;
+import com.beyond.sportsmatch.domain.match.model.entity.MatchStatus;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -15,6 +16,8 @@ import java.time.format.DateTimeFormatter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MatchApplicationResponseDto {
+    private int id;
+
     private String sport;
 
     private String region;
@@ -28,7 +31,10 @@ public class MatchApplicationResponseDto {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm", timezone = "Asia/Seoul")
     private LocalDateTime createdAt;
 
+    private MatchStatus status;
+
     public MatchApplicationResponseDto(MatchApplication matchApplication) {
+        this.id = matchApplication.getMatchApplicationId();
         this.sport = matchApplication.getSport().getName();
         this.region = matchApplication.getRegion();
         this.matchDate = matchApplication.getMatchDate();
@@ -36,5 +42,6 @@ public class MatchApplicationResponseDto {
                     " - " + matchApplication.getEndTime().format(DateTimeFormatter.ofPattern("HH:mm"));
         this.genderOption = matchApplication.getGenderOption();
         this.createdAt = matchApplication.getCreatedAt();
+        this.status = matchApplication.getStatus();
     }
 }

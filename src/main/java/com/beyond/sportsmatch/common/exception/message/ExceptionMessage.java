@@ -38,13 +38,18 @@ public enum ExceptionMessage {
     ALREADY_SENT_REQUEST("이미 해당 유저에게 요청을 보냈습니다.", HttpStatus.CONFLICT),
     ALREADY_FRIEND("해당 유저와 이미 친구입니다.", HttpStatus.CONFLICT),
     ALREADY_DELETE_FRIEND("이미 삭제된 친구입니다.", HttpStatus.NOT_FOUND),
+  
     // match
     MATCH_APPLICATION_NOT_FOUND("매칭 신청 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    MATCH_NOT_FOUND("매칭 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    SPORT_NOT_FOUND("존재하지 않는 스포츠 종목입니다.", HttpStatus.NOT_FOUND),
 
+    MATCH_RESULT_ALREADY_EXISTS("이미 결과가 등록된 경기입니다.", HttpStatus.CONFLICT),
+    DUPLICATE_MATCH_APPLICATION("동일한 날짜에 이미 매칭을 신청했습니다.", HttpStatus.CONFLICT),
+    CANNOT_CANCEL_MATCH_APPLICATION("WAITING 상태가 아니면 취소할 수 없음", HttpStatus.CONFLICT),
 
-
-
-
+    INVALID_MATCH_DATE("매칭 날짜는 오늘 이후여야 합니다.", HttpStatus.BAD_REQUEST),
+    INVALID_MATCH_TIME("종료 시간이 시작 시간보다 빠를 수 없습니다.", HttpStatus.BAD_REQUEST);
 
 
     // myPage

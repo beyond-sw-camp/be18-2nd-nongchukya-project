@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CompletedMatchResponseDto {
+    private int id;
 
     private String sport;
 
@@ -32,6 +33,7 @@ public class CompletedMatchResponseDto {
     public static CompletedMatchResponseDto fromEntity(MatchCompleted match) {
         CompletedMatchResponseDto dto = new CompletedMatchResponseDto();
         // 엔티티의 필드 값을 DTO의 필드로 복사
+        dto.setId(match.getMatchId());
         dto.setSport(match.getSport().getName());
         dto.setRegion(match.getRegion());
         dto.setMatchDate(match.getMatchDate());

@@ -19,6 +19,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -61,8 +62,8 @@ public class SecurityConfig {
                                 "/ws/**",
                                 "/api/v1/sse/**"
                         ).permitAll()
-                        // 매칭중인 리스트는 공개
-                        .requestMatchers("api/v1/match-service/imminent-matches", "api/v1/match-service/matches").permitAll()
+                        // 임박 매칭 리스트, 날짜별 매칭 리스트는 공개
+                        .requestMatchers("api/v1/match-service/imminent-matches", "api/v1/match-service/matches-by-date").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/community/**").permitAll()
                         .requestMatchers("/uploads/**").permitAll()
                         .requestMatchers("/favicon.ico", "/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()

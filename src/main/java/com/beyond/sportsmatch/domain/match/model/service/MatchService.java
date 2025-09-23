@@ -9,6 +9,7 @@ import com.beyond.sportsmatch.domain.match.model.dto.MatchResultRequestDto;
 import com.beyond.sportsmatch.domain.match.model.dto.MatchResponseDto;
 import com.beyond.sportsmatch.domain.match.model.dto.MatchResultResponseDto;
 import com.beyond.sportsmatch.domain.match.model.entity.MatchApplication;
+import com.beyond.sportsmatch.domain.user.model.entity.Sport;
 import com.beyond.sportsmatch.domain.user.model.entity.User;
 import org.springframework.data.domain.Pageable;
 
@@ -17,21 +18,21 @@ import java.util.List;
 import java.util.Set;
 
 public interface MatchService {
-    void saveMatch(MatchApplicationRequestDto requestDto, User user);
+    MatchApplication saveMatch(MatchApplicationRequestDto requestDto, User user);
 
     MatchApplication getMatch(int applicationId);
 
-    void deleteMatch(int applicationId);
+    MatchApplication deleteMatch(int applicationId);
 
     List<MatchApplicationResponseDto> getMatchApplications(int page, int numOfRows, User applicantId);
 
     List<MatchApplication> getMatchApplications();
 
-    Set<String> getImminentMatches();
+    List<MatchResponseDto> getImminentMatches();
 
-    List<CompletedMatchResponseDto> getCompletedMatches(User user);
+    List<CompletedMatchResponseDto> getCompletedMatches(User user, Pageable pageable);
 
-    List<MatchApplication> getMatchesByDate(LocalDate date);
+    List<MatchResponseDto> getMatchesByDate(LocalDate date);
 
     int getTotalCount();
 
@@ -47,5 +48,11 @@ public interface MatchService {
 
     void processFailedMatches();
 
+    List<Sport> getSports();
 
+    int getWaitingCountForUser(User user);
+
+    int getCompletedCountForUser(User user);
+
+    int getTotalCountMatchResult(User user);
 }
