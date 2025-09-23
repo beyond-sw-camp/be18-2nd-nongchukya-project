@@ -49,18 +49,18 @@ public class KakaoAuthService {
     @Transactional
     public TokenResponseDto kakaoLogin(String code, HttpServletResponse response) {
         try {
-            // 인가 코드로 카카오 AccessToken 발급
+            // 1. 인가 코드로 카카오 AccessToken 발급
             String tokenJson = getAccessToken(code);
             String kakaoAccessToken = objectMapper.readTree(tokenJson).get("access_token").asText();
 
-            // AccessToken으로 사용자 정보 요청
+            // 2. AccessToken으로 사용자 정보 요청
             KakaoUserResponseDto kakaoUser = getUserInfo(kakaoAccessToken);
 
             String email = kakaoUser.getKakaoAccount().getEmail();
             String nickname = kakaoUser.getKakaoAccount().getProfile().getNickname();
             String profileImage = kakaoUser.getKakaoAccount().getProfile().getProfileImageUrl();
 
-            // DB에서 사용자 확인 (없으면 회원가입)
+            // 3. DB에서 사용자 확인 (없으면 회원가입)
             User user = userRepository.findByEmail(email).orElseGet(() -> {
                 return userRepository.save(
                         User.builder()
@@ -81,7 +81,7 @@ public class KakaoAuthService {
                 );
             });
 
-            // JWT 발급
+            // 4. JWT 발급
             String accessJwt = jwtTokenProvider.createAccessToken(
                     user.getLoginId(),
                     user.getRole().name(),
@@ -89,17 +89,17 @@ public class KakaoAuthService {
             );
             String refreshJwt = jwtTokenProvider.createRefreshToken(user.getLoginId());
 
-            // RefreshToken DB 저장
+            // 5. RefreshToken DB 저장
             createOrUpdateRefreshToken(user, refreshJwt);
 
-            // RefreshToken 쿠키 저장
+            // 6. RefreshToken 쿠키 저장
             response.addCookie(createRefreshTokenCookie(refreshJwt));
 
-            // 반환
-            return new TokenResponseDto(accessJwt, refreshJwt);
+            // 7. 최종 반환 (닉네임 포함)
+            return new TokenResponseDto(accessJwt, refreshJwt, user.getNickname());
 
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("카카오 로그인 실패", e);
             throw new RuntimeException("카카오 로그인 실패: " + e.getMessage());
         }
     }
@@ -120,14 +120,13 @@ public class KakaoAuthService {
             os.write(body.getBytes(StandardCharsets.UTF_8));
         }
 
-        BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8));
-        StringBuilder response = new StringBuilder();
-        String line;
-        while ((line = br.readLine()) != null) response.append(line);
-
-        return response.toString();
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8))) {
+            StringBuilder response = new StringBuilder();
+            String line;
+            while ((line = br.readLine()) != null) response.append(line);
+            return response.toString();
+        }
     }
-
 
     // 카카오 AccessToken → 사용자 정보 가져오기
     private KakaoUserResponseDto getUserInfo(String accessToken) throws IOException {
@@ -136,28 +135,25 @@ public class KakaoAuthService {
         conn.setRequestMethod("GET");
         conn.setRequestProperty("Authorization", "Bearer " + accessToken);
 
-        BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8));
-        StringBuilder response = new StringBuilder();
-        String line;
-        while ((line = br.readLine()) != null) response.append(line);
-
-        return objectMapper.readValue(response.toString(), KakaoUserResponseDto.class);
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8))) {
+            StringBuilder response = new StringBuilder();
+            String line;
+            while ((line = br.readLine()) != null) response.append(line);
+            return objectMapper.readValue(response.toString(), KakaoUserResponseDto.class);
+        }
     }
-
 
     // RefreshToken 쿠키 생성
     private Cookie createRefreshTokenCookie(String refreshTokenValue) {
         Cookie cookie = new Cookie("refreshToken", refreshTokenValue);
         cookie.setHttpOnly(true);
-        cookie.setSecure(false); // 운영 환경에서는 true
-        cookie.setPath("/api/v1/auth/refresh");
+        cookie.setSecure(false); // 운영 환경에서는 true 권장
+        cookie.setPath("/api/v1/auth/"); // ✅ 범위 확장
         cookie.setMaxAge(60 * 60 * 24 * 90); // 3개월
         return cookie;
     }
 
-
     // RefreshToken DB 저장/갱신
-
     private void createOrUpdateRefreshToken(User user, String tokenValue) {
         refreshTokenRepository.deleteByUser(user);
         refreshTokenRepository.save(

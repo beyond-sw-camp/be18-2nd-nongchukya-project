@@ -3,9 +3,9 @@ package com.beyond.sportsmatch.auth.model.service;
 import com.beyond.sportsmatch.auth.model.dto.request.LoginRequestDto;
 import com.beyond.sportsmatch.auth.model.dto.response.TokenResponseDto;
 import com.beyond.sportsmatch.auth.model.repository.RefreshTokenRepository;
-import com.beyond.sportsmatch.domain.user.model.repository.UserRepository;
 import com.beyond.sportsmatch.auth.model.security.jwt.JwtTokenProvider;
 import com.beyond.sportsmatch.auth.model.entity.RefreshToken;
+import com.beyond.sportsmatch.domain.user.model.repository.UserRepository;
 import com.beyond.sportsmatch.domain.user.model.entity.User;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -26,7 +26,6 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final RefreshTokenRepository refreshTokenRepository;
-
 
     // 로그인 → AccessToken + RefreshToken 발급
     @Transactional
@@ -54,9 +53,9 @@ public class AuthService {
         // 5. 쿠키 저장
         response.addCookie(createRefreshTokenCookie(refreshTokenValue));
 
-        return new TokenResponseDto(accessToken, refreshTokenValue);
+        // ✅ 닉네임을 응답에도 포함
+        return new TokenResponseDto(accessToken, refreshTokenValue, user.getNickname());
     }
-
 
     // RefreshToken 검증 후 AccessToken 재발급
     @Transactional
@@ -104,9 +103,8 @@ public class AuthService {
         // 6. 쿠키 갱신
         response.addCookie(createRefreshTokenCookie(newRefreshTokenValue));
 
-        return new TokenResponseDto(newAccessToken, newRefreshTokenValue);
+        return new TokenResponseDto(newAccessToken, newRefreshTokenValue, user.getNickname());
     }
-
 
     private Cookie createRefreshTokenCookie(String refreshTokenValue) {
         Cookie cookie = new Cookie("refreshToken", refreshTokenValue);
