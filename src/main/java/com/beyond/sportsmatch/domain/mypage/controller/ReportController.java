@@ -1,6 +1,5 @@
 package com.beyond.sportsmatch.domain.mypage.controller;
 
-
 import com.beyond.sportsmatch.auth.model.service.UserDetailsImpl;
 import com.beyond.sportsmatch.common.dto.BaseResponseDto;
 import com.beyond.sportsmatch.domain.mypage.model.dto.ReportRequestDto;
@@ -24,24 +23,25 @@ public class ReportController {
 
     private final ReportService reportService;
     private final UserRepository userRepository;
-    // 1) 신고 등록 (로그인 유저 기준)
+
+    // 1) 신고 등록 (MultipartFile 지원)
     @PostMapping
     public BaseResponseDto<ReportResponseDto> createReport(
-            @AuthenticationPrincipal UserDetailsImpl userDetails, // JWT에서 추출한 로그인 유저
-            @RequestBody ReportRequestDto request
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            @ModelAttribute ReportRequestDto request // multipart/form-data 받기
     ) {
-        User loginUser = userDetails.getUser(); // 실제 User 객체
-//        User targetUser = new User();
-//        targetUser.setUserId(request.getTargetUserId());
-        // 1) 닉네임으로 신고 대상자 조회
+        User loginUser = userDetails.getUser();
+
+        // 닉네임으로 신고 대상자 조회
         User targetUser = userRepository.findByNickname(request.getTargetUserNickname())
                 .orElseThrow(() -> new IllegalArgumentException("해당 닉네임 사용자 없음"));
+
+        // 신고 처리
         Report report = reportService.reportUser(
                 loginUser,
                 targetUser,
                 request.getReason(),
-                request.getDescription(),
-                request.getEvidenceUrl()
+                request.getDescription()
         );
 
         return new BaseResponseDto<>(HttpStatus.CREATED, ReportResponseDto.from(report));

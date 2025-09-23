@@ -15,7 +15,6 @@ public class ReportResponseDto {
     private String targetUserNickname;
     private String reason;
     private String description;
-    private String evidenceUrl;
     private String status;
     private LocalDateTime createTime;
     private LocalDateTime updateTime;
@@ -27,7 +26,6 @@ public class ReportResponseDto {
                 report.getTargetUser().getNickname(),
                 report.getReason(),
                 report.getDescription(),
-                report.getEvidenceUrl(),
                 report.getStatus(),
                 report.getCreatedAt(),  // 추가
                 report.getUpdatedAt()   // 추가
