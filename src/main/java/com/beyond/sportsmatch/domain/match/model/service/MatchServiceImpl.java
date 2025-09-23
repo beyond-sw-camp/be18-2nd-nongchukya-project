@@ -57,7 +57,7 @@ public class MatchServiceImpl implements MatchService {
     @Override
     @Transactional
     public MatchApplication saveMatch(MatchApplicationRequestDto requestDto, User applicant) {
-        if (requestDto.getMatchDate().isBefore(LocalDate.now())) {
+        if (!requestDto.getMatchDate().isAfter(LocalDate.now())) {
             throw new SportsMatchException(ExceptionMessage.INVALID_MATCH_DATE);
         }
         if (matchApplicationRepository.existsByApplicantIdAndMatchDate(applicant, requestDto.getMatchDate())) {
@@ -199,15 +199,11 @@ public class MatchServiceImpl implements MatchService {
         return matchCompletedRepository.countByUserId(user.getUserId());
     }
 
-//    @Override
-//    public int getTotalCountMatchResult(User user) {
-//        return matchResultRepository.countByUserId(user.getUserId());
-//    }
-
     @Override
     public List<MatchResponseDto> getImminentMatches() {
         List<MatchResponseDto> allMatches = new ArrayList<>();
         Set<String> allKeys = matchRedisService.getAllKeys();
+        int idCounter = 1;
 
         for (String key : allKeys) {
             try {
@@ -224,6 +220,7 @@ public class MatchServiceImpl implements MatchService {
                 int requiredPersonnel = sport.getRequiredPersonnel();
 
                 MatchResponseDto dto = new MatchResponseDto();
+                dto.setId(idCounter++);
                 dto.setSport(sport.getName());
                 dto.setRegion(region);
                 dto.setMatchDate(LocalDate.parse(matchDate));
@@ -238,6 +235,7 @@ public class MatchServiceImpl implements MatchService {
             }
         }
         return allMatches.stream()
+                .filter(dto -> dto.getRequiredCount() - dto.getCurrentCount() > 0)
                 .sorted(Comparator.comparingInt(dto -> dto.getRequiredCount() - (int)dto.getCurrentCount()))
                 .limit(5)
                 .collect(Collectors.toList());
@@ -247,17 +245,19 @@ public class MatchServiceImpl implements MatchService {
     public List<MatchResponseDto> getMatchesByDate(LocalDate date) {
         List<MatchApplication> applications = matchApplicationRepository.findByMatchDate(date);
 
-        // 2. 각 엔티티를 DTO로 변환합니다.
         return applications.stream()
+                .collect(Collectors.toMap(
+                        this::getMatchKey, // getMatchKey를 기준으로 맵의 키로 사용
+                        application -> application, // 값은 application 객체
+                        (existing, replacement) -> existing // 중복 키 발생 시 기존 값 유지
+                ))
+                .values().stream() // 중복이 제거된 application 목록
                 .map(application -> {
                     String key = getMatchKey(application);
-
                     Long currentCount = matchRedisService.getZSetSize(key);
-
-                    // 5. application 엔티티와 waitingCount를 모두 사용하여 DTO를 생성합니다.
                     return MatchResponseDto.fromEntity(application, currentCount);
                 })
-                .collect(Collectors.toList()); // DTO 리스트로 만들어 반환합니다.
+                .collect(Collectors.toList());
     }
 
     @Override
