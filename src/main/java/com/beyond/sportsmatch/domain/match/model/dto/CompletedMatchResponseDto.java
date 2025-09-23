@@ -1,6 +1,7 @@
 package com.beyond.sportsmatch.domain.match.model.dto;
 
 import com.beyond.sportsmatch.domain.match.model.entity.MatchCompleted;
+import com.beyond.sportsmatch.domain.match.model.entity.MatchResult;
 import com.beyond.sportsmatch.domain.user.model.entity.User;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -29,6 +30,8 @@ public class CompletedMatchResponseDto {
     private int playerCount;
 
     private String[] participants;
+
+
 
     public static CompletedMatchResponseDto fromEntity(MatchCompleted match) {
         CompletedMatchResponseDto dto = new CompletedMatchResponseDto();

@@ -36,9 +36,11 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -57,7 +59,7 @@ public class MatchServiceImpl implements MatchService {
     @Override
     @Transactional
     public MatchApplication saveMatch(MatchApplicationRequestDto requestDto, User applicant) {
-        if (requestDto.getMatchDate().isBefore(LocalDate.now())) {
+        if (!requestDto.getMatchDate().isAfter(LocalDate.now())) {
             throw new SportsMatchException(ExceptionMessage.INVALID_MATCH_DATE);
         }
         if (matchApplicationRepository.existsByApplicantIdAndMatchDate(applicant, requestDto.getMatchDate())) {
@@ -164,11 +166,7 @@ public class MatchServiceImpl implements MatchService {
 
         MatchResult savedResult = matchResultRepository.save(matchResult);
 
-        return new MatchResultResponseDto(
-                savedResult.getScore(),
-                savedResult.getWinner(),
-                savedResult.getResultNote()
-        );
+        return MatchResultResponseDto.fromEntity(savedResult);
     }
 
     @Override
@@ -199,65 +197,34 @@ public class MatchServiceImpl implements MatchService {
         return matchCompletedRepository.countByUserId(user.getUserId());
     }
 
-//    @Override
-//    public int getTotalCountMatchResult(User user) {
-//        return matchResultRepository.countByUserId(user.getUserId());
-//    }
-
     @Override
     public List<MatchResponseDto> getImminentMatches() {
-        List<MatchResponseDto> allMatches = new ArrayList<>();
         Set<String> allKeys = matchRedisService.getAllKeys();
-
-        for (String key : allKeys) {
-            try {
-                String[] keyParts = key.split(":");
-
-                int sportId = Integer.parseInt(keyParts[1]);
-                Sport sport = sportRepository.findById(sportId).orElse(null);
-                String region = keyParts[2];
-                String matchDate = keyParts[3];
-                String matchTime = keyParts[4];
-                String genderOption = keyParts[5];
-
-                long currentSize = matchRedisService.getZSetSize(key);
-                int requiredPersonnel = sport.getRequiredPersonnel();
-
-                MatchResponseDto dto = new MatchResponseDto();
-                dto.setSport(sport.getName());
-                dto.setRegion(region);
-                dto.setMatchDate(LocalDate.parse(matchDate));
-                dto.setMatchTime(matchTime);
-                dto.setGenderOption(genderOption);
-                dto.setCurrentCount(currentSize);
-                dto.setRequiredCount(requiredPersonnel);
-
-                allMatches.add(dto);
-            } catch (Exception e) {
-                throw new IllegalArgumentException(e.getMessage());
-            }
+        if (allKeys.isEmpty()) {
+            return Collections.emptyList();
         }
-        return allMatches.stream()
-                .sorted(Comparator.comparingInt(dto -> dto.getRequiredCount() - (int)dto.getCurrentCount()))
+
+        return allKeys.stream()
+                .map(this::parseMatchKeyToDto)
+                .filter(Objects::nonNull)
+                .filter(dto -> dto.getRequiredCount() - dto.getCurrentCount() > 0)
+                .sorted(Comparator.comparingInt(dto -> dto.getRequiredCount() - (int) dto.getCurrentCount()))
                 .limit(5)
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<MatchResponseDto> getMatchesByDate(LocalDate date) {
-        List<MatchApplication> applications = matchApplicationRepository.findByMatchDate(date);
+        Set<String> allKeys = matchRedisService.getAllKeys();
+        if (allKeys.isEmpty()) {
+            return Collections.emptyList();
+        }
 
-        // 2. 각 엔티티를 DTO로 변환합니다.
-        return applications.stream()
-                .map(application -> {
-                    String key = getMatchKey(application);
-
-                    Long currentCount = matchRedisService.getZSetSize(key);
-
-                    // 5. application 엔티티와 waitingCount를 모두 사용하여 DTO를 생성합니다.
-                    return MatchResponseDto.fromEntity(application, currentCount);
-                })
-                .collect(Collectors.toList()); // DTO 리스트로 만들어 반환합니다.
+        return allKeys.stream()
+                .map(this::parseMatchKeyToDto)
+                .filter(Objects::nonNull)
+                .filter(dto -> dto.getMatchDate().equals(date))
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -283,6 +250,47 @@ public class MatchServiceImpl implements MatchService {
                 formattedEndTime,
                 dto.getGenderOption()
                 );
+    }
+
+    // key를 다시 객체형태로 반환
+    private MatchResponseDto parseMatchKeyToDto(String key) {
+        try {
+            String[] keyParts = key.split(":");
+
+            int sportId = Integer.parseInt(keyParts[1]);
+            Sport sport = sportRepository.findById(sportId).orElse(null);
+            if (sport == null) return null;
+
+            String region = keyParts[2];
+            LocalDate matchDate = LocalDate.parse(keyParts[3]);
+            String matchTime = formatMatchTime(keyParts[4]);
+            String genderOption = keyParts[5];
+
+            long currentSize = matchRedisService.getZSetSize(key);
+            int requiredPersonnel = sport.getRequiredPersonnel();
+
+            MatchResponseDto dto = new MatchResponseDto();
+            dto.setSport(sport.getName());
+            dto.setRegion(region);
+            dto.setMatchDate(matchDate);
+            dto.setMatchTime(matchTime);
+            dto.setGenderOption(genderOption);
+            dto.setCurrentCount(currentSize);
+            dto.setRequiredCount(requiredPersonnel);
+
+            return dto;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private String formatMatchTime(String timePart) {
+        String[] times = timePart.split("-");
+        String startTime = times[0];
+        String endTime = times[1];
+        return String.format("%s:%s - %s:%s",
+                startTime.substring(0, 2), startTime.substring(2),
+                endTime.substring(0, 2), endTime.substring(2));
     }
 
     // key : 매칭조건, value : userId

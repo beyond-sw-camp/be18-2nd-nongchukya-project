@@ -166,16 +166,14 @@ public class MatchController {
     }
 
     // 경기 결과 리스트 조회
-//    @GetMapping("/match-results")
-//    public ResponseEntity<ItemsResponseDto<MatchResultResponseDto>> getResult(@PageableDefault(size = 5, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
-//                                                                              @AuthenticationPrincipal UserDetailsImpl userDetails) {
-//        User user = userDetails.getUser();
-//
-//        int totalCount = matchService.getTotalCountMatchResult(user);
-//        List<MatchResultResponseDto> results = matchService.getMatchResults(user);
-//
-//        return ResponseEntity.ok(new ItemsResponseDto<>(HttpStatus.OK, results, pageable.getPageSize(), totalCount));
-//    }
+    @GetMapping("/match-results")
+    public ResponseEntity<List<MatchResultResponseDto>> getResult(@AuthenticationPrincipal UserDetailsImpl userDetails) {
+        User user = userDetails.getUser();
+
+        List<MatchResultResponseDto> results = matchService.getMatchResults(user);
+
+        return ResponseEntity.status(HttpStatus.OK).body(results);
+    }
 
     // 종목 조회
     @GetMapping("/sport")
