@@ -54,5 +54,5 @@ public interface MatchService {
 
     int getCompletedCountForUser(User user);
 
-    int getTotalCountMatchResult(User user);
+//    int getTotalCountMatchResult(User user);
 }

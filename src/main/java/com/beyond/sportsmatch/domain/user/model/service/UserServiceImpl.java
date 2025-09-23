@@ -26,11 +26,17 @@ public class UserServiceImpl implements UserService {
         int senderUserId = loginUserId;
         List<Integer> sentRequestIds = friendRequestRepository.findReceiverIdsBySenderId(senderUserId);
 
+        int receiverUserId = loginUserId;
+        List<Integer> receivedRequestIds = friendRequestRepository.findSenderIdsByReceiverId(receiverUserId);
+
+
         return users.stream()
                 .filter(user -> user.getUserId() != loginUserId)
                 .filter(user -> !friendIds.contains(user.getUserId()))
                 .filter(user -> !sentRequestIds.contains(user.getUserId()))
+                .filter(user -> !receivedRequestIds.contains(user.getUserId()))
                 .map(user -> new UserResponseDto(user.getUserId(), user.getNickname(), user.getProfileImage()))
                 .toList();
     }
 }
+

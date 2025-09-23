@@ -199,10 +199,10 @@ public class MatchServiceImpl implements MatchService {
         return matchCompletedRepository.countByUserId(user.getUserId());
     }
 
-    @Override
-    public int getTotalCountMatchResult(User user) {
-        return matchResultRepository.countByUserId(user.getUserId());
-    }
+//    @Override
+//    public int getTotalCountMatchResult(User user) {
+//        return matchResultRepository.countByUserId(user.getUserId());
+//    }
 
     @Override
     public List<MatchResponseDto> getImminentMatches() {
