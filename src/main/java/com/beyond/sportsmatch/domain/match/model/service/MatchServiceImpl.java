@@ -198,6 +198,11 @@ public class MatchServiceImpl implements MatchService {
     }
 
     @Override
+    public int getResultCountForUser(User user) {
+        return matchResultRepository.countByUser(user);
+    }
+
+    @Override
     public List<MatchResponseDto> getImminentMatches() {
         Set<String> allKeys = matchRedisService.getAllKeys();
         if (allKeys.isEmpty()) {

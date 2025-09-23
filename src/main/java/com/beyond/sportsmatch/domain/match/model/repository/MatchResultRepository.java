@@ -16,4 +16,7 @@ public interface MatchResultRepository extends JpaRepository<MatchResult, Intege
 
     @Query("SELECT mr FROM MatchResult mr JOIN mr.match.participants p WHERE p = :user")
     List<MatchResult> findMatchResultsByUser(@Param("user") User user);
+
+    @Query("SELECT COUNT(mr) FROM MatchResult mr JOIN mr.match.participants p WHERE p = :user")
+    int countByUser(@Param("user") User user);
 }
