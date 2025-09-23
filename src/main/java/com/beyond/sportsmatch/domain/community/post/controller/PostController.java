@@ -22,6 +22,7 @@ import com.beyond.sportsmatch.common.dto.ItemsResponseDto;
 import com.beyond.sportsmatch.common.exception.CommunityException;
 import com.beyond.sportsmatch.common.exception.message.ExceptionMessage;
 import com.beyond.sportsmatch.domain.community.post.model.dto.AttachmentResponseDto;
+import com.beyond.sportsmatch.domain.community.post.model.dto.NeighborPostDto;
 import com.beyond.sportsmatch.domain.community.post.model.dto.PostRequestDto;
 import com.beyond.sportsmatch.domain.community.post.model.dto.PostResponseDto;
 import com.beyond.sportsmatch.domain.community.post.model.dto.PostsResponseDto;
@@ -52,6 +53,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -200,5 +202,23 @@ public class PostController {
                         (int)postPage.getTotalElements()
                 )
         );
+    }
+
+    @GetMapping("/posts/{postId}/neighbors")
+    public ResponseEntity<Map<String, NeighborPostDto>> getNeighborPosts(
+            @PathVariable int postId,
+            @RequestParam(value = "category", required = false) String categoryName, // 카테고리
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+
+        // 로깅
+        System.out.println("===== getNeighborPosts 호출 =====");
+        System.out.println("postId: " + postId);
+        System.out.println("categoryName: " + categoryName);
+
+        User user =  userDetails.getUser();
+
+        Map<String, NeighborPostDto> neighbors = postService.getNeighborPosts(postId, user, categoryName);
+
+        return ResponseEntity.ok(neighbors);
     }
 }
