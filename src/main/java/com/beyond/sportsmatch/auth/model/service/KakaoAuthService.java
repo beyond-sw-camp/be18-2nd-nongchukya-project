@@ -43,9 +43,6 @@ public class KakaoAuthService {
     @Value("${kakao.redirect-uri}")
     private String redirectUri;
 
-    /**
-     * 카카오 로그인 → 회원가입 or 로그인 → JWT 발급
-     */
     @Transactional
     public TokenResponseDto kakaoLogin(String code, HttpServletResponse response) {
         try {
@@ -61,25 +58,25 @@ public class KakaoAuthService {
             String profileImage = kakaoUser.getKakaoAccount().getProfile().getProfileImageUrl();
 
             // 3. DB에서 사용자 확인 (없으면 회원가입)
-            User user = userRepository.findByEmail(email).orElseGet(() -> {
-                return userRepository.save(
-                        User.builder()
-                                .loginId(email)               // 지금은 email = loginId
-                                .email(email)
-                                .password("kakao_oauth")      // 더미 패스워드
-                                .name(nickname)
-                                .nickname(nickname)
-                                .gender("UNKNOWN")
-                                .age(0)
-                                .address("NONE")
-                                .phoneNumber("NONE")
-                                .dmOption(false)
-                                .status("Y")
-                                .profileImage(profileImage)
-                                .role(Role.USER)
-                                .build()
-                );
-            });
+            User user = userRepository.findByEmail(email).orElseGet(() ->
+                    userRepository.save(
+                            User.builder()
+                                    .loginId(email)               // email = loginId
+                                    .email(email)
+                                    .password("kakao_oauth")      // 더미 패스워드
+                                    .name(nickname)
+                                    .nickname(nickname)
+                                    .gender("UNKNOWN")
+                                    .age(0)
+                                    .address("NONE")
+                                    .phoneNumber("NONE")
+                                    .dmOption(false)
+                                    .status("Y")
+                                    .profileImage(profileImage)
+                                    .role(Role.USER)
+                                    .build()
+                    )
+            );
 
             // 4. JWT 발급
             String accessJwt = jwtTokenProvider.createAccessToken(
@@ -95,16 +92,15 @@ public class KakaoAuthService {
             // 6. RefreshToken 쿠키 저장
             response.addCookie(createRefreshTokenCookie(refreshJwt));
 
-            // 7. 최종 반환 (닉네임 포함)
+            // 7. 최종 반환
             return new TokenResponseDto(accessJwt, refreshJwt, user.getNickname());
 
         } catch (Exception e) {
             log.error("카카오 로그인 실패", e);
-            throw new RuntimeException("카카오 로그인 실패: " + e.getMessage());
+            throw new RuntimeException("카카오 로그인 실패: " + e.getMessage(), e);
         }
     }
 
-    // 카카오 인가 코드 → AccessToken 교환
     private String getAccessToken(String code) throws IOException {
         URL url = new URL("https://kauth.kakao.com/oauth/token");
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -147,9 +143,9 @@ public class KakaoAuthService {
     private Cookie createRefreshTokenCookie(String refreshTokenValue) {
         Cookie cookie = new Cookie("refreshToken", refreshTokenValue);
         cookie.setHttpOnly(true);
-        cookie.setSecure(false); // 운영 환경에서는 true 권장
-        cookie.setPath("/api/v1/auth/");
-        cookie.setMaxAge(60 * 60 * 24 * 90); // 3개월
+        cookie.setSecure(false); 
+        cookie.setPath("/");     // AuthService와 동일하게 통일
+        cookie.setMaxAge(60 * 60 * 24 * 90); // 90일
         return cookie;
     }
 
