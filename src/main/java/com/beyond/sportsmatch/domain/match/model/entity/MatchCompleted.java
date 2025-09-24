@@ -45,9 +45,6 @@ public class MatchCompleted {
     private String genderOption;
 
     @Column
-    private String status;
-
-    @Column
     private LocalDateTime createdAt;
 
     @ManyToMany(fetch = FetchType.EAGER)

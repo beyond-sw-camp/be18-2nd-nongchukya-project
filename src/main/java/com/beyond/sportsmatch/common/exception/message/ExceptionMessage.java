@@ -38,7 +38,7 @@ public enum ExceptionMessage {
     ALREADY_SENT_REQUEST("이미 해당 유저에게 요청을 보냈습니다.", HttpStatus.CONFLICT),
     ALREADY_FRIEND("해당 유저와 이미 친구입니다.", HttpStatus.CONFLICT),
     ALREADY_DELETE_FRIEND("이미 삭제된 친구입니다.", HttpStatus.NOT_FOUND),
-    ALREADY_RECEIVED_REQUEST("이미 요청을 받았습니다.", HttpStatus.CONFLICT),
+    ALREADY_RECEIVED_REQUEST("이미 친구 요청을 받았습니다.", HttpStatus.CONFLICT),
 
 
     // match

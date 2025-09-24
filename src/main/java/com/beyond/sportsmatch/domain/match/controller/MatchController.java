@@ -46,7 +46,7 @@ public class MatchController {
     // 매칭 신청
     @PostMapping("/match-applications")
     public ResponseEntity<BaseResponseDto<MatchApplicationResponseDto>> createMatch(@RequestBody MatchApplicationRequestDto requestDto,
-                                                       @AuthenticationPrincipal UserDetailsImpl userDetails) {
+                                                                                    @AuthenticationPrincipal UserDetailsImpl userDetails) {
         // 로그인된 유저 정보 가져오기
         User user = userDetails.getUser();
 
@@ -159,21 +159,23 @@ public class MatchController {
 
     // 경기 결과 등록
     @PostMapping("/completed-matches/{matchId}/match-results")
-    public ResponseEntity<MatchResultResponseDto> saveResult(@PathVariable("matchId") int matchId,
-                                                  @RequestBody MatchResultRequestDto dto) {
+    public ResponseEntity<BaseResponseDto<MatchResultResponseDto>> saveResult(@PathVariable("matchId") int matchId,
+                                                                               @RequestBody MatchResultRequestDto dto) {
+
         MatchResultResponseDto matchResultResponseDto = matchService.saveMatchResult(matchId, dto);
 
-        return ResponseEntity.status(HttpStatus.OK).body(matchResultResponseDto);
+        return ResponseEntity.ok(new BaseResponseDto<>(HttpStatus.OK, matchResultResponseDto));
     }
 
     // 경기 결과 리스트 조회
     @GetMapping("/match-results")
-    public ResponseEntity<List<MatchResultResponseDto>> getResult(@AuthenticationPrincipal UserDetailsImpl userDetails) {
+    public ResponseEntity<ItemsResponseDto<MatchResultResponseDto>> getResult(@AuthenticationPrincipal UserDetailsImpl userDetails) {
         User user = userDetails.getUser();
 
+        int totalCount = matchService.getResultCountForUser(user);
         List<MatchResultResponseDto> results = matchService.getMatchResults(user);
 
-        return ResponseEntity.status(HttpStatus.OK).body(results);
+        return ResponseEntity.ok(new ItemsResponseDto<>(HttpStatus.OK, results, 5, totalCount));
     }
 
     // 종목 조회

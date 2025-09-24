@@ -150,7 +150,7 @@ public class UserService {
         response.addCookie(cookie);
 
         // 4. 응답 반환
-        return new TokenResponseDto(newAccessToken, newRefreshToken);
+        return new TokenResponseDto(newAccessToken, newRefreshToken, user.getNickname());
     }
 
     // 회원 탈퇴
