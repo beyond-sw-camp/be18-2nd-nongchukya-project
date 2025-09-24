@@ -8,6 +8,7 @@ import com.beyond.sportsmatch.domain.community.comment.model.repository.CommentR
 import com.beyond.sportsmatch.domain.community.post.model.repository.PostRepository;
 import com.beyond.sportsmatch.domain.match.model.entity.MatchCompleted;
 import com.beyond.sportsmatch.domain.match.model.repository.MatchCompletedRepository;
+import com.beyond.sportsmatch.domain.friend.model.repository.FriendRequestRepository;
 import com.beyond.sportsmatch.domain.notification.model.entity.Notification;
 import com.beyond.sportsmatch.domain.notification.model.repository.NotificationRepository;
 import com.beyond.sportsmatch.domain.user.model.entity.User;
@@ -39,7 +40,7 @@ public class NotificationService {
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
     private final MatchCompletedRepository matchCompletedRepository;
-
+    private final FriendRequestRepository friendRequestRepository;
 
     public ItemsResponseDto<Notification> getNotifications(UserDetailsImpl userDetails, int page, int size) {
         if(userDetails == null) {
@@ -302,4 +303,27 @@ public class NotificationService {
         notificationSseService.send(commentRepository.findLoginIdByCommentId(commentOwnerId).orElseThrow(), "comment-replied", payload);
     }
 
+    @Transactional
+    public void notifyReceivedFriendRequest(Integer senderUserId, Integer receiverId, String senderNickname) {
+        Notification notif = Notification.builder()
+                .userId(receiverId)
+                .type("FRIEND_REQUEST")
+                .title("친구 요청")
+                .body(senderNickname + "님이 회원님에게 친구 요청을 보냈습니다.")
+                .senderUserId(senderUserId)
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        notif = notificationRepository.save(notif);
+
+        LocalDateTime now = LocalDateTime.now();
+        Map<String, Object> payload = Map.of(
+                "id", notif.getNotificationId(),
+                "type", notif.getType(),
+                "title", notif.getTitle(),
+                "body", notif.getBody(),
+                "createdAt", notif.getCreatedAt().toString()
+        );
+        notificationSseService.send(friendRequestRepository.findLoginIdByReceiverId(receiverId).orElseThrow(), "friend-request", payload);
+    }
 }

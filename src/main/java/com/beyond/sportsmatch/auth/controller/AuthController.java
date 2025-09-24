@@ -6,6 +6,7 @@ import com.beyond.sportsmatch.auth.model.dto.request.SignUpRequestDto;
 import com.beyond.sportsmatch.auth.model.dto.response.TokenResponseDto;
 import com.beyond.sportsmatch.auth.model.service.AuthService;
 import com.beyond.sportsmatch.auth.model.service.EmailService;
+import com.beyond.sportsmatch.auth.model.service.KakaoAuthService;
 import com.beyond.sportsmatch.auth.model.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -24,6 +25,7 @@ public class AuthController {
     private final UserService userService;
     private final AuthService authService;
     private final EmailService emailService;
+    private final KakaoAuthService kakaoAuthService;
 
     // 회원가입
     @PostMapping("/signup")
@@ -97,4 +99,13 @@ public class AuthController {
         ));
     }
 
+    // 카카오 로그인 콜백
+    @GetMapping("/kakao/callback")
+    public ResponseEntity<TokenResponseDto> kakaoCallback(
+            @RequestParam String code,
+            HttpServletResponse response
+    ) {
+        TokenResponseDto tokenResponse = kakaoAuthService.kakaoLogin(code, response);
+        return ResponseEntity.ok(tokenResponse);
+    }
 }

@@ -8,6 +8,7 @@ import com.beyond.sportsmatch.common.exception.message.ExceptionMessage;
 import com.beyond.sportsmatch.domain.friend.model.dto.FriendResponseDto;
 import com.beyond.sportsmatch.domain.friend.model.service.FriendRequestService;
 import com.beyond.sportsmatch.domain.friend.model.service.FriendService;
+import com.beyond.sportsmatch.domain.notification.model.service.NotificationService;
 import com.beyond.sportsmatch.domain.user.model.dto.UserResponseDto;
 import com.beyond.sportsmatch.domain.user.model.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +35,7 @@ public class FriendController {
     private final FriendService friendService;
     private final FriendRequestService friendRequestService;
     private final UserService userService;
+    private final NotificationService notificationService;
 
     @GetMapping("/friends/list") // 친구 리스트 확인 메소드
     public ResponseEntity<BaseResponseDto<FriendResponseDto>> getFriends(@AuthenticationPrincipal UserDetailsImpl loginUser) {
@@ -79,7 +81,9 @@ public class FriendController {
     @PostMapping("/friends/requests") // 친구 추가 요청 보내기 메소드
     public ResponseEntity<BaseResponseDto<String>> sendFriendRequest(@AuthenticationPrincipal UserDetailsImpl senderUser, @RequestParam int receiverUserId) {
         int senderUserId = senderUser.getUser().getUserId();
+        String nickname = senderUser.getUser().getNickname();
         friendRequestService.sendFriendRequest(senderUserId, receiverUserId);
+        notificationService.notifyReceivedFriendRequest(senderUserId, receiverUserId,nickname);
         return ResponseEntity.ok(new BaseResponseDto<>(HttpStatus.OK,"친구 요청 완료"));
     }
 

@@ -46,7 +46,8 @@ public class AuthService {
         createOrUpdateRefreshToken(user, refreshTokenValue);
         response.addCookie(createRefreshTokenCookie(refreshTokenValue));
 
-        return new TokenResponseDto(accessToken, refreshTokenValue);
+        // ✅ 닉네임을 응답에도 포함
+        return new TokenResponseDto(accessToken, refreshTokenValue, user.getNickname());
     }
 
     @Transactional
@@ -86,7 +87,7 @@ public class AuthService {
         refreshTokenRepository.save(savedToken);
         response.addCookie(createRefreshTokenCookie(newRefreshTokenValue));
 
-        return new TokenResponseDto(newAccessToken, newRefreshTokenValue);
+        return new TokenResponseDto(newAccessToken, newRefreshTokenValue, user.getNickname());
     }
 
     private Cookie createRefreshTokenCookie(String refreshTokenValue) {
