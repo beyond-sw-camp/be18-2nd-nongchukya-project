@@ -1,6 +1,6 @@
 <div align="center">
 
-# be18-2nd-농구있네 축구싶냐 야구르징-project
+# be18-2nd-농구있네 축구싶냐 야구르징 PLinkTalk-project
 
 ## 시간 기반으로 사용자를 실시간 매칭해 운동 활동을 중개하는 서비스
 <img src="/readme_images/SportMatch_LOGO.png" alt="LOGO" width="300"/>
