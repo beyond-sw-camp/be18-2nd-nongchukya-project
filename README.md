@@ -57,3 +57,46 @@
 [ERD](https://www.erdcloud.com/d/mrc7T5gfD8iZbYr8P)
 
 [API 명세서](https://www.notion.so/API-24f80955955380be8f0deade40d16847)
+
+
+
+
+# 📌 기술스택
+
+<br>
+
+### BACKEND
+
+
+![java](https://github.com/user-attachments/assets/a9cd03e7-07d6-477e-b3dd-32e7a6ae1e08)
+![jpa](https://github.com/user-attachments/assets/dd9fdaec-6850-4401-9c67-af2da34ddf5d) 
+<img src="https://img.shields.io/badge/Maven-C71A36?style=for-the-badge&logo=apachemaven&logoColor=white">
+![jwt](https://github.com/user-attachments/assets/83bddf8b-d556-4e60-8391-2074704103c4)
+<img src="https://img.shields.io/badge/SpringBoot-10B146?style=for-the-badge&logo=SpringBoot&logoColor=white">
+<img src="https://img.shields.io/badge/SpringSecurity-3B66BC?style=for-the-badge&logo=SpringSecurity&logoColor=white">
+
+<br>
+
+
+### DATABASE
+
+
+![redis](https://github.com/user-attachments/assets/df929d81-ce2f-4853-97fd-cdf7bf45907e) ![mariadb](https://github.com/user-attachments/assets/19a0ad09-804d-4303-80bd-32cafdae0e6f)
+
+
+
+<br>
+
+### ETC
+
+
+![postman](https://github.com/user-attachments/assets/4bcd5043-6841-4cd1-b864-dec4dc39f918)
+
+<br>
+
+### IDE
+
+
+![intellij](https://github.com/user-attachments/assets/25d426ed-e30e-4619-9968-11375adba8b9)
+
+<br><br>
