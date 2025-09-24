@@ -52,6 +52,14 @@
 ## 📌 목차
 
 1. [개요](#1-개요)
+2. [프로젝트 주요기능](#2-프로젝트-주요기능)
+3. [프로젝트 기대 효과](#3-프로젝트-기대-효과)
+4. [기술 스택](#4-기술-스택)
+5. [아키텍쳐](#5-아키텍쳐)
+6. [요구사항 정의서](#6-요구사항-정의서)
+7. [테이블 명세서](#7-테이블-명세서)
+8. [ERD](#8-ERD)
+9. [API 명세서](#9-API-명세서)
 
 ---
 
@@ -94,7 +102,9 @@
 - **정기 모임 부담 완화**: 동호회나 동아리에 가입하지 않아도, 사용자가 원하는 시간에 운동 가능.
 - **순수 운동 경험 제공**: 기존 남녀 만남 중심의 서비스와 달리, 순수하게 운동만 즐기고자 하는 사용자 요구 충족.
 
-## 프로젝트 주요기능
+---
+
+# 2. 프로젝트 주요기능
 
 - **실시간 매칭**
 - **실시간 채팅**
@@ -103,7 +113,9 @@
 - **회원관리**
 - **친구 기능**
 
-# 프로젝트 기대 효과
+---
+
+# 3. 프로젝트 기대 효과
 
 ## 1. 시간적 제약 해소
 
@@ -124,7 +136,7 @@
 - 기존 동호회 중심의 배타적 관계와 달리, **유연하면서도 선택적인 연결**을 만들 수 있다.
 
 
-# 📌 기술스택
+# 4. 기술 스택
 
 <br>
 
@@ -165,6 +177,9 @@
 
 
 ![postman](https://github.com/user-attachments/assets/4bcd5043-6841-4cd1-b864-dec4dc39f918)
+<img src="https://img.shields.io/badge/SSE-FF6F00?style=for-the-badge&logo=serverfault&logoColor=white">
+<img src="https://img.shields.io/badge/WebSocket-008080?style=for-the-badge&logo=socket.io&logoColor=white">
+
 
 <br>
 
@@ -175,11 +190,36 @@
 
 <br><br>
 
+# 5. 아키텍쳐
+
+# 6. 요구사항 정의서
 
 [요구사항 정의서](https://docs.google.com/spreadsheets/d/1293Cmz0EkIeH163VswqcNQPK-0b8Cr8gXvtHyckqLN8/edit?gid=0#gid=0&fvid=1857363008)
 
+<img width="1188" height="753" alt="image" src="https://github.com/user-attachments/assets/a27574d1-482f-4735-bb4f-5f8843e8fd44" />
+
+---
+
+# 7. 테이블 명세서
+
 [테이블 명세서](https://docs.google.com/spreadsheets/d/1293Cmz0EkIeH163VswqcNQPK-0b8Cr8gXvtHyckqLN8/edit?gid=99972625#gid=99972625)
+
+<img width="924" height="691" alt="image" src="https://github.com/user-attachments/assets/50838fc5-ea4f-454b-8a4c-05bd6161605c" />
+
+---
+
+# 8. ERD
 
 [ERD](https://www.erdcloud.com/d/mrc7T5gfD8iZbYr8P)
 
+<img width="1506" height="714" alt="image" src="https://github.com/user-attachments/assets/61614c7d-d75d-4fed-b36b-e297d1ece750" />
+
+---
+
+# 9. API 명세서
+
 [API 명세서](https://www.notion.so/API-24f80955955380be8f0deade40d16847)
+
+<img width="1543" height="856" alt="image" src="https://github.com/user-attachments/assets/9eaf974a-32ce-4e7c-ae53-a2fdedb28a8d" />
+
+---
