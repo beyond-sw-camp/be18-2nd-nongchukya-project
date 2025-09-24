@@ -6,20 +6,25 @@ import com.beyond.sportsmatch.common.exception.ChatException;
 import com.beyond.sportsmatch.common.exception.message.ExceptionMessage;
 import com.beyond.sportsmatch.domain.community.comment.model.repository.CommentRepository;
 import com.beyond.sportsmatch.domain.community.post.model.repository.PostRepository;
+import com.beyond.sportsmatch.domain.match.model.entity.MatchCompleted;
+import com.beyond.sportsmatch.domain.match.model.repository.MatchCompletedRepository;
 import com.beyond.sportsmatch.domain.notification.model.entity.Notification;
 import com.beyond.sportsmatch.domain.notification.model.repository.NotificationRepository;
+import com.beyond.sportsmatch.domain.user.model.entity.User;
 import com.beyond.sportsmatch.domain.user.model.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +38,8 @@ public class NotificationService {
     private final UserRepository userRepository;
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
+    private final MatchCompletedRepository matchCompletedRepository;
+
 
     public ItemsResponseDto<Notification> getNotifications(UserDetailsImpl userDetails, int page, int size) {
         if(userDetails == null) {
@@ -175,6 +182,51 @@ public class NotificationService {
         }
     }
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void sendMatchEnded(MatchCompleted match) {
+        String title = "경기 결과를 등록해주세요!";
+        String body = "%s %s에서 진행된 경기의 결과를 등록하세요!"
+                .formatted(
+                        match.getMatchDate().toString(),
+                        match.getRegion()
+                );
+
+        LocalDateTime now = LocalDateTime.now();
+        List<Integer> userIds = match.getParticipants().stream().map(User::getUserId).toList();
+
+        List<Notification> rows = new ArrayList<>();
+        for(Integer userId : userIds){
+            rows.add(Notification.builder()
+                    .userId(userId)
+                    .type("REQUEST_MATCH_RESULT")
+                    .title(title)
+                    .body(body)
+                    .matchId(match.getMatchId())
+                    .createdAt(now)
+                    .build());
+        }
+        notificationRepository.saveAll(rows);
+
+        Map<Integer, Integer> notifIdByUserId =
+                rows.stream().collect(Collectors.toMap(Notification::getUserId, Notification::getNotificationId, (a, b)->b));
+        for(Integer userId : userIds){
+            String loginId = userRepository.findLoginIdByUserId(userId).orElseThrow(()->
+                    new ChatException(ExceptionMessage.LOGINID_NOT_FOUND));
+            if(loginId == null){
+                continue;
+            }
+            Map<String, Object> payload = Map.of(
+                    "id", notifIdByUserId.get(userId),
+                    "type", "REQUEST_MATCH_RESULT",
+                    "matchId", match.getMatchId(),
+                    "title", title,
+                    "body", body,
+                    "createdAt", now.toString()
+            );
+            notificationSseService.send(loginId, "request-match-result", payload);
+        }
+    }
+
     // 게시글 좋아요
     @Transactional
     public void notifyPostLiked(int postOwnerId, int postId, String likerNickname) {
@@ -249,4 +301,5 @@ public class NotificationService {
         notificationRepository.save(notif);
         notificationSseService.send(commentRepository.findLoginIdByCommentId(commentOwnerId).orElseThrow(), "comment-replied", payload);
     }
+
 }
