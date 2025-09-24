@@ -12,6 +12,8 @@ import com.beyond.sportsmatch.domain.match.model.repository.MatchApplicationRepo
 import com.beyond.sportsmatch.domain.match.model.repository.MatchCompletedRepository;
 import com.beyond.sportsmatch.domain.match.model.repository.MatchRepository;
 import com.beyond.sportsmatch.domain.match.model.service.MatchRedisService;
+import com.beyond.sportsmatch.domain.match.model.service.MatchService;
+import com.beyond.sportsmatch.domain.match.model.service.MatchServiceImpl;
 import com.beyond.sportsmatch.domain.notification.model.service.NotificationService;
 import com.beyond.sportsmatch.domain.user.model.repository.UserRepository;
 import com.beyond.sportsmatch.domain.chat.model.dto.ChatDto;
@@ -372,21 +374,22 @@ public class ChatService {
         return roomId;
     }
 
-    private String getMatchKey(MatchApplication dto) {
+    public String getMatchKey(MatchApplication dto) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HHmm");
         String formattedStartTime = dto.getStartTime().format(formatter);
         String formattedEndTime = dto.getEndTime().format(formatter);
 
-        return String.format("match:%s:%s:%s:%s-%s",
+        return String.format("match:%s:%s:%s:%s-%s:%s",
                 dto.getSport().getId(),
                 dto.getRegion(),
                 dto.getMatchDate(),
                 formattedStartTime,
-                formattedEndTime);
+                formattedEndTime,
+                dto.getGenderOption()
+        );
     }
 
-    // key : 매칭조건, value : userId
-    public void addToMatchList(MatchApplication matchApplication,int remainUserId) {
+    public void addToMatchList(MatchApplication matchApplication, int remainUserId) {
         String key = getMatchKey(matchApplication);
         String value = String.valueOf(remainUserId);
         long ttl = 7 * 24 * 60 * 60 * 1000L;

@@ -249,7 +249,7 @@ public class MatchServiceImpl implements MatchService {
     }
 
     // Key : match:sportId:region:date:startTime:endTime:genderOption
-    private String getMatchKey(MatchApplication dto) {
+    public String getMatchKey(MatchApplication dto) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HHmm");
         String formattedStartTime = dto.getStartTime().format(formatter);
         String formattedEndTime = dto.getEndTime().format(formatter);

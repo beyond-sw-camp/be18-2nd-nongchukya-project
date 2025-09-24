@@ -59,6 +59,7 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/v1/auth/**",
                                 "/auth/kakao/callback",
+                                "/oauth/callback",
                                 "/ws/**",
                                 "/api/v1/sse/**"
                         ).permitAll()
