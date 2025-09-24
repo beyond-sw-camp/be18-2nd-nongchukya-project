@@ -3,6 +3,7 @@ package com.beyond.sportsmatch.domain.match.model.service;
 
 import com.beyond.sportsmatch.common.exception.SportsMatchException;
 import com.beyond.sportsmatch.common.exception.message.ExceptionMessage;
+import com.beyond.sportsmatch.domain.chat.model.entity.ChatRoom;
 import com.beyond.sportsmatch.domain.chat.model.service.ChatService;
 import com.beyond.sportsmatch.domain.match.model.dto.CompletedMatchResponseDto;
 import com.beyond.sportsmatch.domain.match.model.dto.MatchApplicationResponseDto;
@@ -229,10 +230,17 @@ public class MatchServiceImpl implements MatchService {
 
     @Override
     public List<CompletedMatchResponseDto> getCompletedMatches(User user, Pageable pageable) {
-        List<MatchCompleted> completedMatches = matchCompletedRepository.findAllByUserId(user.getUserId(), pageable);
+        List<MatchCompleted> completedMatches =
+                matchCompletedRepository.findAllByUserId(user.getUserId(), pageable);
 
         return completedMatches.stream()
-                .map(CompletedMatchResponseDto::fromEntity)
+                .map(match -> {
+                    // matchId 기준으로 채팅방 조회
+                    ChatRoom chatRoom = chatService.getChatRoomByMatchId(match.getMatchId());
+
+                    // roomId도 포함된 DTO로 변환
+                    return CompletedMatchResponseDto.fromEntityWithRoomId(match, chatRoom);
+                })
                 .collect(Collectors.toList());
     }
 

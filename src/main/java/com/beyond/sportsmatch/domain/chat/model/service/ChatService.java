@@ -7,6 +7,8 @@ import com.beyond.sportsmatch.domain.chat.model.dto.RoomDeletedEvent;
 import com.beyond.sportsmatch.domain.chat.model.dto.UserListResDto;
 import com.beyond.sportsmatch.domain.match.model.entity.MatchApplication;
 import com.beyond.sportsmatch.domain.match.model.entity.MatchCompleted;
+import com.beyond.sportsmatch.domain.match.model.entity.MatchStatus;
+import com.beyond.sportsmatch.domain.match.model.repository.MatchApplicationRepository;
 import com.beyond.sportsmatch.domain.match.model.repository.MatchCompletedRepository;
 import com.beyond.sportsmatch.domain.match.model.repository.MatchRepository;
 import com.beyond.sportsmatch.domain.match.model.service.MatchRedisService;
@@ -53,6 +55,7 @@ public class ChatService {
     private final MatchCompletedRepository matchCompletedRepository;
     private final NotificationService notificationService;
     private final ApplicationEventPublisher applicationEventPublisher;
+    private final MatchApplicationRepository matchApplicationRepository;
 
     public void saveMessage(int chatRoomId, ChatDto message) {
         // 채팅방 조회
@@ -259,6 +262,13 @@ public class ChatService {
         List<JoinedChatRoom> joins = chatParticipantRepository.findAllByChatRoom(chatRoom);
         List<Integer> remainUserIds = joins.stream().map(j -> j.getUser().getUserId()).filter(uid -> !uid.equals(user.getUserId())).toList();
 
+        MatchApplication cancelApp = matchRepository.findByApplicantIdAndMatchDate(user, matchCompleted.getMatchDate());
+        if(cancelApp != null) {
+            cancelApp.setStatus(MatchStatus.CANCELED);
+            matchApplicationRepository.save(cancelApp);
+
+        }
+
         MatchApplication baseApp = matchRepository.findByApplicantIdAndMatchDate(
                 userRepository.getReferenceById(remainUserIds.get(0)),
                 matchCompleted.getMatchDate()
@@ -267,6 +277,14 @@ public class ChatService {
         chatRoomRepository.delete(chatRoom);
         matchCompletedRepository.delete(matchCompleted);
         for (int remainUserId : remainUserIds) {
+            User u = userRepository.getReferenceById(remainUserId);
+            MatchApplication app = matchRepository.findByApplicantIdAndMatchDate(u, matchCompleted.getMatchDate());
+            if (app == null) {
+                // 유저가 신청기록이 없으면 스킵하거나 예외처리 선택
+                continue;
+            }
+            app.setStatus(MatchStatus.WAITING);
+            matchApplicationRepository.save(app);
             addToMatchList(baseApp, remainUserId);
         }
         notificationService.sendMatchCancelled(
@@ -408,5 +426,10 @@ public class ChatService {
             );
         }
         return userListResDtos;
+    }
+
+    public ChatRoom getChatRoomByMatchId(int matchId) {
+        return chatRoomRepository.findByMatchId(matchId)
+                .orElseThrow(() -> new RuntimeException("해당 matchId의 채팅방이 존재하지 않습니다."));
     }
 }
