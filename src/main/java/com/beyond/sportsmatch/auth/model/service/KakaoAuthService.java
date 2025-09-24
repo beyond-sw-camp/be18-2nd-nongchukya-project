@@ -148,7 +148,7 @@ public class KakaoAuthService {
         Cookie cookie = new Cookie("refreshToken", refreshTokenValue);
         cookie.setHttpOnly(true);
         cookie.setSecure(false); // 운영 환경에서는 true 권장
-        cookie.setPath("/api/v1/auth/"); // ✅ 범위 확장
+        cookie.setPath("/api/v1/auth/");
         cookie.setMaxAge(60 * 60 * 24 * 90); // 3개월
         return cookie;
     }

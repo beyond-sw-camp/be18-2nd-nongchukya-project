@@ -1,5 +1,6 @@
 package com.beyond.sportsmatch.auth.model.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -28,11 +29,14 @@ public class SignUpRequestDto {
 
     @NotBlank
     private String name;
+
     private String gender;
+
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate birthdate;
+
     private String address;
     private String phoneNumber;
     private Boolean dmOption;
     private String status;
-    private String profileImage;
 }
