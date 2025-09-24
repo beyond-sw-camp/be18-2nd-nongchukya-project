@@ -52,4 +52,7 @@ public class Notification {
 
     @Column(name="comment_id")
     private int commentId;
+
+    @Column(name="receiver_id")
+    private Integer receiverId;
 }

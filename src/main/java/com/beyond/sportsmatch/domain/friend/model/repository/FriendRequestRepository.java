@@ -12,6 +12,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface FriendRequestRepository extends JpaRepository<FriendRequest, Integer> {
@@ -54,4 +55,6 @@ public interface FriendRequestRepository extends JpaRepository<FriendRequest, In
 
     @Query("select fr.senderUserId.userId from FriendRequest fr where fr.receiverUserId.userId = :receiverUserId")
     List<Integer> findSenderIdsByReceiverId(int receiverUserId);
+    @Query("select u.loginId from User u where u.userId = :userId")
+    Optional<String> findLoginIdByReceiverId(@Param("userId") int receiverId);
 }
