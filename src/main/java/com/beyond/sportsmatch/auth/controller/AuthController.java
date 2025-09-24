@@ -12,8 +12,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Map;
 
@@ -28,10 +30,12 @@ public class AuthController {
     private final KakaoAuthService kakaoAuthService;
 
     // 회원가입
-    @PostMapping("/signup")
-    public ResponseEntity<String> signUp(@Valid @RequestBody SignUpRequestDto dto) {
-        System.out.println("회원가입 요청 DTO = " + dto);
-        userService.signUp(dto);
+    @PostMapping(value = "/signup", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<String> signUp(
+            @RequestPart("dto") @Valid SignUpRequestDto dto,
+            @RequestPart(value = "profileImage", required = false) MultipartFile profileImage
+    ) {
+        userService.signUp(dto, profileImage);
         return ResponseEntity.ok("회원가입 성공!");
     }
 

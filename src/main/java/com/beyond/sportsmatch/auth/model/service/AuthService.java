@@ -27,6 +27,9 @@ public class AuthService {
     private final JwtTokenProvider jwtTokenProvider;
     private final RefreshTokenRepository refreshTokenRepository;
 
+    /**
+     * 로그인 → AccessToken + RefreshToken 발급
+     */
     @Transactional
     public TokenResponseDto login(LoginRequestDto dto, HttpServletResponse response) {
         User user = userRepository.findByLoginId(dto.getLoginId())
@@ -46,14 +49,16 @@ public class AuthService {
         createOrUpdateRefreshToken(user, refreshTokenValue);
         response.addCookie(createRefreshTokenCookie(refreshTokenValue));
 
-        // ✅ 닉네임을 응답에도 포함
         return new TokenResponseDto(accessToken, refreshTokenValue, user.getNickname());
     }
 
+    /**
+     * RefreshToken 검증 후 AccessToken 재발급
+     */
     @Transactional
     public TokenResponseDto refresh(HttpServletRequest request, HttpServletResponse response) {
         String refreshTokenValue = Arrays.stream(request.getCookies())
-                .filter(c -> c.getName().equals("refreshToken"))
+                .filter(c -> "refreshToken".equals(c.getName()))
                 .map(Cookie::getValue)
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Refresh Token이 존재하지 않습니다."));
@@ -85,6 +90,7 @@ public class AuthService {
 
         savedToken.updateToken(newRefreshTokenValue, LocalDateTime.now().plusDays(90));
         refreshTokenRepository.save(savedToken);
+
         response.addCookie(createRefreshTokenCookie(newRefreshTokenValue));
 
         return new TokenResponseDto(newAccessToken, newRefreshTokenValue, user.getNickname());
@@ -93,9 +99,9 @@ public class AuthService {
     private Cookie createRefreshTokenCookie(String refreshTokenValue) {
         Cookie cookie = new Cookie("refreshToken", refreshTokenValue);
         cookie.setHttpOnly(true);
-        cookie.setSecure(false);
+        cookie.setSecure(true); // ✅ HTTPS 환경 권장
         cookie.setPath("/");
-        cookie.setMaxAge(60 * 60 * 24 * 90);
+        cookie.setMaxAge(60 * 60 * 24 * 90); // 90일
         return cookie;
     }
 
@@ -110,12 +116,14 @@ public class AuthService {
         );
     }
 
+    /**
+     * 로그아웃 → RefreshToken DB 삭제 및 쿠키 만료 처리
+     */
     @Transactional
     public void logout(HttpServletRequest request, HttpServletResponse response) {
         Cookie[] cookies = request.getCookies();
         if (cookies == null) return;
 
-        // 여러 쿠키 중 DB에 있는 값만 찾아서 삭제
         Arrays.stream(cookies)
                 .filter(c -> "refreshToken".equals(c.getName()))
                 .map(Cookie::getValue)
@@ -124,10 +132,9 @@ public class AuthService {
                             .ifPresent(refreshTokenRepository::delete);
                 });
 
-        // 쿠키 만료
         Cookie expiredCookie = new Cookie("refreshToken", null);
         expiredCookie.setHttpOnly(true);
-        expiredCookie.setSecure(false);
+        expiredCookie.setSecure(true);
         expiredCookie.setPath("/");
         expiredCookie.setMaxAge(0);
         response.addCookie(expiredCookie);

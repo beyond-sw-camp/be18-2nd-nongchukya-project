@@ -61,7 +61,7 @@ public class KakaoAuthService {
             User user = userRepository.findByEmail(email).orElseGet(() ->
                     userRepository.save(
                             User.builder()
-                                    .loginId(email)               // 지금은 email = loginId
+                                    .loginId(email)               // email = loginId
                                     .email(email)
                                     .password("kakao_oauth")      // 더미 패스워드
                                     .name(nickname)
@@ -92,7 +92,7 @@ public class KakaoAuthService {
             // 6. RefreshToken 쿠키 저장
             response.addCookie(createRefreshTokenCookie(refreshJwt));
 
-            // 7. 최종 반환 (닉네임 포함)
+            // 7. 최종 반환
             return new TokenResponseDto(accessJwt, refreshJwt, user.getNickname());
 
         } catch (Exception e) {
@@ -143,9 +143,9 @@ public class KakaoAuthService {
     private Cookie createRefreshTokenCookie(String refreshTokenValue) {
         Cookie cookie = new Cookie("refreshToken", refreshTokenValue);
         cookie.setHttpOnly(true);
-        cookie.setSecure(false); // 운영 환경에서는 true 권장
-        cookie.setPath("/");     // AuthService와 동일
-        cookie.setMaxAge(60 * 60 * 24 * 90); // 3개월
+        cookie.setSecure(false); 
+        cookie.setPath("/");     // AuthService와 동일하게 통일
+        cookie.setMaxAge(60 * 60 * 24 * 90); // 90일
         return cookie;
     }
 

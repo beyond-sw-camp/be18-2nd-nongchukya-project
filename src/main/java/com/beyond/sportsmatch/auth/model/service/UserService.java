@@ -14,14 +14,19 @@ import com.beyond.sportsmatch.domain.user.model.entity.User;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.transaction.annotation.Transactional;
-
+import java.io.File;
+import java.io.IOException;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.Period;
+import java.util.UUID;
+import java.time.LocalDateTime;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -35,7 +40,7 @@ public class UserService {
      * 회원가입
      */
     @Transactional
-    public void signUp(SignUpRequestDto dto) {
+    public void signUp(SignUpRequestDto dto, MultipartFile profileImage) {
         // 1. 이메일 중복 체크
         if (userRepository.findByEmail(dto.getEmail()).isPresent()) {
             throw new IllegalArgumentException("이미 존재하는 이메일입니다.");
@@ -44,31 +49,62 @@ public class UserService {
         // 2. 비밀번호 암호화
         String encodedPassword = passwordEncoder.encode(dto.getPassword());
 
+        // 3. 나이 계산
         Integer calculatedAge = null;
         if (dto.getBirthdate() != null) {
             calculatedAge = Period.between(dto.getBirthdate(), LocalDate.now()).getYears();
         }
 
-        // 3. User 엔티티 생성 후 저장
+        // 4. 프로필 이미지 저장 (없으면 null)
+        String imagePath = null;
+        if (profileImage != null && !profileImage.isEmpty()) {
+            try {
+                // 실행 경로 기준 절대 경로
+                String uploadDir = System.getProperty("user.dir") + "/uploads";
+                File dir = new File(uploadDir);
+                if (!dir.exists() && !dir.mkdirs()) {
+                    throw new RuntimeException("업로드 디렉토리 생성 실패: " + uploadDir);
+                }
+
+                // 파일명에 UUID 붙여 충돌 방지
+                String filename = UUID.randomUUID() + "_" + profileImage.getOriginalFilename();
+                File dest = new File(dir, filename);
+
+                profileImage.transferTo(dest); // 실제 저장
+
+                // DB에 저장할 경로 (정적 리소스 매핑 필요)
+                imagePath = "/uploads/" + filename;
+
+                log.info("프로필 이미지 저장 성공: {}", dest.getAbsolutePath());
+
+            } catch (IOException e) {
+                log.error("프로필 이미지 저장 실패", e);
+                throw new RuntimeException("프로필 이미지 저장 실패", e);
+            }
+        }
+
+
+        // 5. User 엔티티 생성
         User user = User.builder()
                 .loginId(dto.getLoginId())
                 .email(dto.getEmail())
                 .password(encodedPassword)
                 .nickname(dto.getNickname())
                 .name(dto.getName())
-                .birthDate(dto.getBirthdate())
+                .birthDate(dto.getBirthdate()) // dto가 LocalDate 타입이면 그대로, String이면 LocalDate.parse 필요
                 .age(calculatedAge)
                 .gender(dto.getGender())
                 .address(dto.getAddress())
                 .phoneNumber(dto.getPhoneNumber())
                 .dmOption(dto.getDmOption())
                 .status("ACTIVE")
-                .profileImage(dto.getProfileImage())
+                .profileImage(imagePath) // ✅ 카카오 로그인과 동일하게 이 필드만 사용
                 .role(Role.USER)
                 .build();
 
         userRepository.save(user);
     }
+
 
     /**
      * 아이디 찾기
