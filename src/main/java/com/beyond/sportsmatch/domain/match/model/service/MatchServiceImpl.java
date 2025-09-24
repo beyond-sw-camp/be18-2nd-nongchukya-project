@@ -35,6 +35,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.Comparator;
@@ -59,10 +60,14 @@ public class MatchServiceImpl implements MatchService {
     @Override
     @Transactional
     public MatchApplication saveMatch(MatchApplicationRequestDto requestDto, User applicant) {
-        if (!requestDto.getMatchDate().isAfter(LocalDate.now())) {
-            throw new SportsMatchException(ExceptionMessage.INVALID_MATCH_DATE);
+        if (requestDto.getMatchDate().isEqual(LocalDate.now())) {
+            LocalDateTime matchStartTime = LocalDateTime.of(requestDto.getMatchDate(), requestDto.getStartTime());
+            if (LocalDateTime.now().isAfter(matchStartTime.minusHours(2))) {
+                throw new SportsMatchException(ExceptionMessage.CANNOT_APPLY_MATCH);
+            }
         }
-        if (matchApplicationRepository.existsByApplicantIdAndMatchDate(applicant, requestDto.getMatchDate())) {
+        Set<MatchStatus> activeStatuses = Set.of(MatchStatus.WAITING, MatchStatus.COMPLETED);
+        if (matchApplicationRepository.existsByApplicantIdAndMatchDateAndStatusIn(applicant, requestDto.getMatchDate(), activeStatuses)) {
             throw new SportsMatchException(ExceptionMessage.DUPLICATE_MATCH_APPLICATION);
         }
         if (!requestDto.getStartTime().isBefore(requestDto.getEndTime())) {
@@ -100,6 +105,10 @@ public class MatchServiceImpl implements MatchService {
 
         if (matchApplication.getStatus() != MatchStatus.WAITING) {
             throw new SportsMatchException(ExceptionMessage.CANNOT_CANCEL_MATCH_APPLICATION);
+        }
+        LocalDateTime matchStartTime = LocalDateTime.of(matchApplication.getMatchDate(), matchApplication.getStartTime());
+        if (LocalDateTime.now().isAfter(matchStartTime.minusHours(2))) {
+            throw new SportsMatchException(ExceptionMessage.CANNOT_CANCEL_MATCH_TWO_HOURS_LEFT);
         }
 
         String key = getMatchKey(matchApplication);
@@ -392,7 +401,11 @@ public class MatchServiceImpl implements MatchService {
     @Override
     @Transactional
     public void processFailedMatches() {
-        List<MatchApplication> expiredApplications = matchApplicationRepository.findByMatchDateBeforeAndStatus(LocalDate.now(), MatchStatus.WAITING);
+        List<MatchApplication> expiredApplications =
+                matchApplicationRepository.findByMatchDateBeforeAndStatus(LocalDate.now(), MatchStatus.WAITING);
+
+        List<MatchApplication> todayExpiredApplications = matchApplicationRepository.findByMatchDateAndStartTimeBeforeAndStatus(LocalDate.now(), LocalTime.now(), MatchStatus.WAITING);
+        expiredApplications.addAll(todayExpiredApplications);
 
         for (MatchApplication application : expiredApplications) {
             // Redis에서 삭제
