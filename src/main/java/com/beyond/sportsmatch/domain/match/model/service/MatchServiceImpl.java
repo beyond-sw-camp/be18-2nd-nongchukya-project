@@ -68,6 +68,11 @@ public class MatchServiceImpl implements MatchService {
         if (!requestDto.getStartTime().isBefore(requestDto.getEndTime())) {
             throw new SportsMatchException(ExceptionMessage.INVALID_MATCH_TIME);
         }
+        String requestedOption = requestDto.getGenderOption();
+
+        if (!(requestedOption.equals(applicant.getGender()) || requestedOption.equals("A"))) {
+            throw new SportsMatchException(ExceptionMessage.INVALID_GENDER_OPTION);
+        }
 
         Sport sport = sportRepository.findByName(requestDto.getSport())
                 .orElseThrow(() -> new SportsMatchException(ExceptionMessage.SPORT_NOT_FOUND));

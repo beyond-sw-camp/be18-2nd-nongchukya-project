@@ -52,6 +52,7 @@ public enum ExceptionMessage {
 
     INVALID_MATCH_DATE("매칭 날짜는 오늘 이후여야 합니다.", HttpStatus.BAD_REQUEST),
     INVALID_MATCH_TIME("종료 시간이 시작 시간보다 빠를 수 없습니다.", HttpStatus.BAD_REQUEST),
+    INVALID_GENDER_OPTION("자신의 성별과 맞지 않는 매치는 생성할 수 없습니다.", HttpStatus.BAD_REQUEST),
 
 
     // myPage
