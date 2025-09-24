@@ -192,6 +192,10 @@
 
 # 5. 아키텍쳐
 
+<img width="1930" height="1172" alt="image" src="https://github.com/user-attachments/assets/17988b3a-8b03-4572-8746-1618733b0e08" />
+
+---
+
 # 6. 요구사항 정의서
 
 [요구사항 정의서](https://docs.google.com/spreadsheets/d/1293Cmz0EkIeH163VswqcNQPK-0b8Cr8gXvtHyckqLN8/edit?gid=0#gid=0&fvid=1857363008)
