@@ -9,6 +9,7 @@ import com.beyond.sportsmatch.domain.match.model.dto.MatchResultRequestDto;
 import com.beyond.sportsmatch.domain.match.model.dto.MatchResponseDto;
 import com.beyond.sportsmatch.domain.match.model.dto.MatchResultResponseDto;
 import com.beyond.sportsmatch.domain.match.model.entity.MatchApplication;
+import com.beyond.sportsmatch.domain.match.model.entity.MatchCompleted;
 import com.beyond.sportsmatch.domain.user.model.entity.Sport;
 import com.beyond.sportsmatch.domain.user.model.entity.User;
 import org.springframework.data.domain.Pageable;
@@ -55,5 +56,4 @@ public interface MatchService {
     int getCompletedCountForUser(User user);
 
     int getResultCountForUser(User user);
-
 }
