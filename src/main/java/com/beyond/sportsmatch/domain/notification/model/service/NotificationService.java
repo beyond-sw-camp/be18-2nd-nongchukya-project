@@ -259,7 +259,7 @@ public class NotificationService {
                 .type("FRIEND_REQUEST")
                 .title("친구 요청")
                 .body(senderNickname + "님이 회원님에게 친구 요청을 보냈습니다.")
-//                .senderUserId(senderUserId)
+                .senderUserId(senderUserId)
                 .createdAt(LocalDateTime.now())
                 .build();
 
