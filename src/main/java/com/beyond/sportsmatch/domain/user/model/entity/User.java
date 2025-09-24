@@ -33,8 +33,11 @@ public class User {
     @Column(name = "user_id")
     private int userId;
 
-    @Column(nullable = false, unique = true, length = 30)
-    @Pattern(regexp = "^[a-zA-Z0-9!@#$%^&*()_+=.-]{6,50}$")
+    @Column(nullable = false, unique = true, length = 50)
+    @Pattern(
+            regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[!@#$%^&*()_+=.-])[A-Za-z\\d!@#$%^&*()_+=.-]{6,50}$",
+            message = "아이디는 영문, 숫자, 특수문자를 각각 최소 1개 포함한 6자 이상이어야 합니다."
+    )
     private String loginId;
 
     @Email
