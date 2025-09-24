@@ -11,6 +11,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Set;
 
@@ -34,4 +35,8 @@ public interface MatchApplicationRepository extends JpaRepository<MatchApplicati
     List<MatchApplication> findByUserIdsAndStatus(@Param("userIds") List<Integer> userIds, @Param("status") MatchStatus status);
 
     List<MatchApplication> findByMatchDateBeforeAndStatus(LocalDate now, MatchStatus matchStatus);
+
+    List<MatchApplication> findByMatchDateAndStartTimeBeforeAndStatus(LocalDate now, LocalTime now1, MatchStatus matchStatus);
+
+    boolean existsByApplicantIdAndMatchDateAndStatusIn(User applicant, LocalDate matchDate, Set<MatchStatus> activeStatuses);
 }
