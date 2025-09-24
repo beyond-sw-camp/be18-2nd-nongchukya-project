@@ -60,11 +60,9 @@ public class MatchServiceImpl implements MatchService {
     @Override
     @Transactional
     public MatchApplication saveMatch(MatchApplicationRequestDto requestDto, User applicant) {
-        if (requestDto.getMatchDate().isEqual(LocalDate.now())) {
-            LocalDateTime matchStartTime = LocalDateTime.of(requestDto.getMatchDate(), requestDto.getStartTime());
-            if (LocalDateTime.now().isAfter(matchStartTime.minusHours(2))) {
-                throw new SportsMatchException(ExceptionMessage.CANNOT_APPLY_MATCH);
-            }
+        LocalDateTime matchStartTime = LocalDateTime.of(requestDto.getMatchDate(), requestDto.getStartTime());
+        if (LocalDateTime.now().isAfter(matchStartTime.minusHours(2))) {
+            throw new SportsMatchException(ExceptionMessage.CANNOT_APPLY_MATCH);
         }
         Set<MatchStatus> activeStatuses = Set.of(MatchStatus.WAITING, MatchStatus.COMPLETED);
         if (matchApplicationRepository.existsByApplicantIdAndMatchDateAndStatusIn(applicant, requestDto.getMatchDate(), activeStatuses)) {
