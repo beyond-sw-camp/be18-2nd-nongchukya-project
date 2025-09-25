@@ -180,7 +180,6 @@
 <img src="https://img.shields.io/badge/SpringBoot-10B146?style=for-the-badge&logo=SpringBoot&logoColor=white">
 <img src="https://img.shields.io/badge/SpringSecurity-3B66BC?style=for-the-badge&logo=SpringSecurity&logoColor=white">
 
-<br>
 
 ### FRONTEND
   
@@ -191,7 +190,6 @@
 <img src="https://img.shields.io/badge/Bootstrap-7952B3?style=for-the-badge&logo=bootstrap&logoColor=white">
 <img src="https://img.shields.io/badge/VS%20Code-007ACC?style=for-the-badge&logo=visualstudiocode&logoColor=white">
 
-<br>
 
 
 ### DATABASE
@@ -201,7 +199,6 @@
 
 
 
-<br>
 
 ### ETC
 
@@ -211,7 +208,6 @@
 <img src="https://img.shields.io/badge/WebSocket-008080?style=for-the-badge&logo=socket.io&logoColor=white">
 
 
-<br>
 
 ### IDE
 
