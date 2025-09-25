@@ -4,7 +4,7 @@
 
 ![Typing SVG](https://readme-typing-svg.herokuapp.com?font=Fira+Code&size=32&pause=1000&color=000000&center=true&vCenter=true&width=1500&lines=⏱️시간+기반으로+사용자를+실시간+매칭해+운동+활동을+중개하는+서비스)
 
-<img src="/readme_images/SportMatch_LOGO.png" alt="PlayLinkTalk Logo" width="260"/>
+<img src="/readme_images/PLINKTALK_LOGO.png" alt="PlayLinkTalk Logo" width="260"/>
   
 </div>
 
