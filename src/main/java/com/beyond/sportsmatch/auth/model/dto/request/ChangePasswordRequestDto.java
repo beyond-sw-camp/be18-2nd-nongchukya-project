@@ -1,5 +1,6 @@
 package com.beyond.sportsmatch.auth.model.dto.request;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -7,5 +8,9 @@ import lombok.Setter;
 @Setter
 // 비밀번호 변경
 public class ChangePasswordRequestDto {
-    private String password; // 새 비밀번호
+    @NotBlank
+    private String currentPassword;
+
+    @NotBlank
+    private String newPassword; // 새 비밀번호
 }

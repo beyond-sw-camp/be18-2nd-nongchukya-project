@@ -35,6 +35,10 @@ public class AuthService {
         User user = userRepository.findByLoginId(dto.getLoginId())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 아이디입니다."));
 
+        if (!"ACTIVE".equals(user.getStatus())) {
+            throw new IllegalArgumentException("탈퇴한 계정입니다.");
+        }
+
         if (!passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
             throw new IllegalArgumentException("비밀번호가 올바르지 않습니다.");
         }

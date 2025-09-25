@@ -10,6 +10,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -34,10 +35,7 @@ public class User {
     private int userId;
 
     @Column(nullable = false, unique = true, length = 50)
-    @Pattern(
-            regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[!@#$%^&*()_+=.-])[A-Za-z\\d!@#$%^&*()_+=.-]{6,50}$",
-            message = "아이디는 영문, 숫자, 특수문자를 각각 최소 1개 포함한 6자 이상이어야 합니다."
-    )
+    @Size(min = 6, max = 20, message = "아이디는 6자 이상 20자 이하여야 합니다.")
     private String loginId;
 
     @Email
@@ -45,7 +43,12 @@ public class User {
     private String email;
 
     @Column(nullable = false, length = 60)
+    @Pattern(
+            regexp = "^(?=.*[A-Za-z])(?=.*\\d).{8,}$",
+            message = "비밀번호는 8자 이상이며, 영문과 숫자를 포함해야 합니다."
+    )
     private String password;
+
 
     @Column(nullable = false, length = 10)
     private String name;
