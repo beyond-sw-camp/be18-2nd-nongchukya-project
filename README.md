@@ -23,7 +23,7 @@
     </td>
     <td align="center"><strong>김재상</strong><br>
       <a href="https://github.com/jaesangE" target="_blank">
-        <img src="readme_images/도라에몽.jpg" width="100px"><br>@jaesangE
+        <img src="readme_images/이슬이2.jpg" width="100px"><br>@jaesangE
       </a>
     </td>
     <td align="center"><strong>이승진</strong><br>
@@ -43,7 +43,7 @@
     </td>
     <td align="center"><strong>최유경</strong><br>
       <a href="https://github.com/kyounggg" target="_blank">
-        <img src="readme_images/이슬이2.jpg" width="100px"><br>@kyounggg
+        <img src="readme_images/도라에몽.jpg" width="100px"><br>@kyounggg
       </a>
     </td>
   </tr>
@@ -166,11 +166,6 @@
 - 원하는 조건(종목·시간·지역·성별)만 입력하면 **자동 매칭 → 자동 채팅방 생성 → 바로 소통**이 가능해 **참여 진입 장벽이 크게 낮아진다.**
 
 ---
-
-## 3. 사회적 연결망 확장
-
-- 일회성 매칭에 그치지 않고, **친구 등록·커뮤니티 기능**을 통해 자연스러운 네트워킹 기회를 제공한다.
-- 기존 동호회 중심의 배타적 관계와 달리, **유연하면서도 선택적인 연결**을 만들 수 있다.
 
 
 # 4. 기술 스택
