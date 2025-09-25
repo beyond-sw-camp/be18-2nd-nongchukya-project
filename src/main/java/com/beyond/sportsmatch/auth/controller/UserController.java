@@ -65,7 +65,8 @@ public class UserController {
 
         User user = userService.findByLoginId(userDetails.getUsername());
 
-        TokenResponseDto tokenResponse = userService.changePassword(user, dto.getPassword(), response);
+        TokenResponseDto tokenResponse = userService.changePassword(
+                user, dto.getCurrentPassword(), dto.getNewPassword(), response);
 
         return ResponseEntity.ok(Map.of(
                 "code", 200,
@@ -78,19 +79,15 @@ public class UserController {
         ));
     }
 
-    @PutMapping("/delete-user/{id}")
+    @PutMapping("/delete-user")
     public ResponseEntity<?> deleteUser(
-            @PathVariable Long id,
             @Valid @RequestBody DeleteUserRequestDto dto,
             @AuthenticationPrincipal UserDetails userDetails) {
 
-        // 로그인한 사용자와 요청 id가 일치하는지 체크
-        if (!userDetails.getUsername().equals(
-                userService.findByLoginId(userDetails.getUsername()).getLoginId())) {
-            throw new IllegalArgumentException("본인 계정만 탈퇴할 수 있습니다.");
-        }
-
+        // 로그인된 사용자 찾기
         User user = userService.findByLoginId(userDetails.getUsername());
+
+        // 탈퇴 처리 (비밀번호 검증 포함)
         userService.deactivateUser(user, dto.getPassword());
 
         return ResponseEntity.ok(Map.of(
@@ -102,5 +99,6 @@ public class UserController {
                 )
         ));
     }
+
 
 }

@@ -13,6 +13,7 @@ import com.beyond.sportsmatch.domain.user.model.entity.Role;
 import com.beyond.sportsmatch.domain.user.model.entity.User;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -160,7 +161,12 @@ public class UserService {
      * 비밀번호 변경 + 토큰 재발급
      */
     @Transactional
-    public TokenResponseDto changePassword(User user, String newPassword, HttpServletResponse response) {
+    public TokenResponseDto changePassword(User user, String currentPassword, String newPassword, HttpServletResponse response) {
+        // 현재 비밀번호 검증
+
+        if(!passwordEncoder.matches(currentPassword, user.getPassword())) {
+            throw new IllegalArgumentException("현재 비밀번호가 올바르지 않습니다.");
+        }
         // 1. 새 비밀번호 암호화 후 업데이트
         user.updatePassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
@@ -196,9 +202,11 @@ public class UserService {
             throw new IllegalArgumentException("비밀번호가 올바르지 않습니다.");
         }
 
-        user.deactivate();   // 상태 변경
+        // 엔티티 메서드 없이 바로 상태 변경
+        user.setStatus("DEACTIVATED");
         userRepository.save(user);
     }
+
 
     @Transactional(readOnly = true)
     public boolean isLoginIdAvailable(String loginId) {
