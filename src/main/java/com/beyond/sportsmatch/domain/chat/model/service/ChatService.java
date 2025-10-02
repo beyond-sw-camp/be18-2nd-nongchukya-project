@@ -264,7 +264,8 @@ public class ChatService {
         List<JoinedChatRoom> joins = chatParticipantRepository.findAllByChatRoom(chatRoom);
         List<Integer> remainUserIds = joins.stream().map(j -> j.getUser().getUserId()).filter(uid -> !uid.equals(user.getUserId())).toList();
 
-        MatchApplication cancelApp = matchRepository.findByApplicantIdAndMatchDate(user, matchCompleted.getMatchDate());
+        MatchApplication cancelApp = matchRepository.findByApplicantIdAndMatchDateAndStatusIn(user, matchCompleted.getMatchDate(), List.of(MatchStatus.WAITING, MatchStatus.COMPLETED)).orElseThrow(() ->
+                new SportsMatchException(ExceptionMessage.MATCH_APPLICATION_NOT_FOUND));
         if(cancelApp != null) {
             cancelApp.setStatus(MatchStatus.CANCELED);
             matchApplicationRepository.save(cancelApp);
