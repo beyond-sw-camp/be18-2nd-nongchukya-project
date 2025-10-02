@@ -63,7 +63,7 @@ public class KakaoAuthService {
                             User.builder()
                                     .loginId(email)               // email = loginId
                                     .email(email)
-                                    .password("kakao_oauth")      // 더미 패스워드
+                                    .password("kakao_oauth1")      // 더미 패스워드
                                     .name(nickname)
                                     .nickname(nickname)
                                     .gender("UNKNOWN")

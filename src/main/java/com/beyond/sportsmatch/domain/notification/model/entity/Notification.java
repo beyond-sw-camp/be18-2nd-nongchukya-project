@@ -48,11 +48,11 @@ public class Notification {
     private LocalDateTime readAt;
 
     @Column(name = "post_id")
-    private int postId;
+    private Integer postId;
 
     @Column(name="comment_id")
-    private int commentId;
+    private Integer commentId;
 
     @Column(name="sender_id")
-    private int senderUserId;
+    private Integer senderUserId;
 }

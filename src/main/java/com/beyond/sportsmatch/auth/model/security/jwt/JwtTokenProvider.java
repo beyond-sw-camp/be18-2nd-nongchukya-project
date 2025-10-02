@@ -29,7 +29,7 @@ public class JwtTokenProvider {
     private final UserRepository userRepository;
 
     // 토큰 만료 시간
-    private final long accessTokenValidity = 1000L * 60 * 15;           // 15분
+    private final long accessTokenValidity = 1000L * 60 * 60 * 12;           // 15분
     private final long refreshTokenValidity = 1000L * 60 * 60 * 24 * 90; // 90일
 
     public JwtTokenProvider(SecretKey secretKey, UserDetailsService userDetailsService, UserRepository userRepository) {
