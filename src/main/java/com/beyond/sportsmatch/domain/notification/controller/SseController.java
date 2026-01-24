@@ -8,10 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -25,7 +22,8 @@ public class SseController {
     private final JwtTokenProvider jwtTokenProvider; // JWT 쓸 때만
 
     @GetMapping(value = "/notifications", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter subscribe(@RequestParam(required = false) String token) {
+    public SseEmitter subscribe(@RequestParam(required = false) String token,
+                                @RequestHeader(value = "Last-Event-ID", required = false) String lastEventId) {
         // 1) 시큐리티 컨텍스트에서 먼저 시도 (세션/쿠키 인증일 때)
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String loginId = null;
@@ -46,6 +44,6 @@ public class SseController {
         }
 
         // (선택) 캐시 방지 헤더는 Spring이 기본 세팅하지만 필요시 필터에서 추가
-        return sseService.subscribe(loginId);
+        return sseService.subscribe(loginId, lastEventId);
     }
 }
